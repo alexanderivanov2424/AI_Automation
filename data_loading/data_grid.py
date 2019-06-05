@@ -10,11 +10,12 @@ class DataGrid:
         files = os.listdir(path)
 
 
-        #load csv files into dictionary
+        #regex to parse grid location from file
         pattern = re.compile("""TiNiSn_500C_Y20190218_14x14_t60_
                                  (?P<num>.*?)
                                  _bkgdSub_1D.csv""", re.VERBOSE)
 
+        #load csv files into dictionary
         self.data ={}
         for file in files:
             match = pattern.match(file)
@@ -23,6 +24,9 @@ class DataGrid:
             num = int(match.group("num"))
             self.data[num] = np.array(pd.read_csv(path + file,header=None))
 
+        self.size = len(self.data.keys())
+        self.data_length = len(self.data[list(self.data.keys())[0]])
+        self.dims = (15,15)
 
         self.row_sums = [5, 14, 25, 38, 51, 66, 81, 96, 111, 126, 139, 152, 163, 172, 177]
         self.row_starts = [1] + [x + 1 for x in self.row_sums[:-1]]
@@ -69,6 +73,10 @@ class DataGrid:
         if not self.in_grid(x,y):
             return None
         return self.data[self.grid_num(x,y)]
+
+    def data_at_loc(self,d):
+        x,y = self.coord(d)
+        return self.data_at(x,y)
 
     def in_grid(self,x,y):
         if x > 15 or x < 0:
