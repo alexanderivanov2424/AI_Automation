@@ -78,6 +78,12 @@ class DataGrid:
         x,y = self.coord(d)
         return self.data_at(x,y)
 
+    def get_data_array(self):
+        data = np.empty(shape=(self.size,self.data_length))
+        for i in range(self.size):
+            data[i] = self.data[i+1][:,1]
+        return data
+
     def in_grid(self,x,y):
         if x > 15 or x < 0:
             return False
