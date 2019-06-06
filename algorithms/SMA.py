@@ -1,6 +1,9 @@
+#Similarity from measurement Avereges
+
+
 
 from data_loading.data_grid import DataGrid
-from utils.utils import plotDataGrid, interpolateData, similarity
+from utils.utils import plotDataGrid, interpolateData, similarity, interpolateDataAvg
 from utils.utils import getSimilarityMatrix, clipSimilarityMatrix
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
@@ -23,7 +26,6 @@ video = []
 fig, ax = plt.subplots(nrows=2, ncols=3)
 canvas = FigureCanvasAgg(fig)
 
-
 true_data = clipSimilarityMatrix(getSimilarityMatrix(dataGrid.get_data_array(),dataGrid))
 ax[1,2].imshow(true_data)
 text = ax[1,1].text(0, 0, "", fontsize=8)
@@ -38,7 +40,6 @@ power = 20
 blur_const = 4
 
 M = np.empty(shape=(dataGrid.size,dataGrid.data_length))
-G = np.full(shape=dataGrid.size,fill_value = k)
 S = set()
 
 
@@ -50,19 +51,12 @@ def get_similarity(d1,d2):
         print(d2)
     return similarity(M[d1],M[d2])
 
-
-def blur(G):
-    T = np.zeros(shape=dataGrid.dims)
-    for i,v in enumerate(G):
-        x,y = dataGrid.coord(i)
-        T[x-1][y-1] = v
-    T_blurred = gaussian_filter(T, sigma=blur_const)
-    final = np.empty(shape=G.shape)
-    for i,v in enumerate(G):
-        x,y = dataGrid.coord(i)
-        final[i] = T_blurred[x-1][y-1]
-    return final
-
+def convertTo1D(G):
+    ret = np.empty(dataGrid.size)
+    for i in range(dataGrid.size):
+        x,y = dataGrid.coord(i+1)
+        ret[i] = G[x-1][y-1]
+    return ret
 
 times = []
 total_timer = 0.
@@ -84,15 +78,27 @@ def get_time():
     total_timer = 0
     return t
 
-while len(S) < 50:
+
+#initial Sample
+C = np.random.choice(range(1,dataGrid.size+1), 1)[0]
+M[C-1] = dataGrid.data_at_loc(C)[:,1]
+
+for n in range(50):
+
     start_time()
-    blurred = blur(np.power(G,power))
-    G_norm = blurred / np.sum(blurred)
+
+    dissim = getSimilarityMatrix(interpolateDataAvg(M),dataGrid)
+    blurred = gaussian_filter(dissim, sigma=blur_const)
+    flat = convertTo1D(blurred)
+    if  np.sum(flat) == 0:
+        Distribution = np.full(shape=(dataGrid.size),fill_value = 1/dataGrid.size)
+    else:
+        Distribution = flat / np.sum(flat)
 
     stop_time()
 
-    plotDataGrid(ax[0,0],np.power(G,power),dataGrid)
-    plotDataGrid(ax[0,1],G_norm,dataGrid)
+    ax[0,0].imshow(dissim)
+    ax[0,1].imshow(blurred)
     ax[0,2].imshow(exp_data)
 
     measured_points = np.zeros(dataGrid.dims)
@@ -106,9 +112,9 @@ while len(S) < 50:
     #Note: cells numbering starts at 1
     data_range = range(1,dataGrid.size+1)
 
-    cells = np.random.choice(data_range, 1, p=G_norm)
+    cells = np.random.choice(data_range, 1, p=Distribution)
     while cells[0] in S:
-        cells = np.random.choice(data_range, 1, p=G_norm)
+        cells = np.random.choice(data_range, 1, p=Distribution)
 
     C = cells[0]
     M[C-1] = dataGrid.data_at_loc(C)[:,1] #"taking a measurement"
@@ -118,19 +124,7 @@ while len(S) < 50:
     next_x,next_y = dataGrid.coord(C)
     sct_next = ax[0,1].scatter(next_y-1,next_x-1,s=15,c='red')
     sct_old = ax[0,1].scatter(old_y-1,old_x-1,s=15,c='purple')
-    start_time()
 
-    sim_list = []
-    for K in dataGrid.neighbors(C).values():
-        if not K in S:
-            M[K-1] = dataGrid.data_at_loc(K)[:,1]  #"taking a measurement"
-            S.add(K)
-        sim_list = [get_similarity(C-1,K-1)] + sim_list
-
-    G[C-1] = max(sim_list)
-
-
-    stop_time()
     times = [get_time()] + times
     s = "Avg Sample Time: \n"
     s += str(float(sum(times)/len(times))) + "\n"
@@ -143,8 +137,10 @@ while len(S) < 50:
     text.set_text(s)
 
 
-    full_data = interpolateData(M,dataGrid)
-    exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
+    if n > 4:
+        full_data = interpolateData(M,dataGrid)
+        exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
+
 
 
     plt.draw()
@@ -157,13 +153,16 @@ while len(S) < 50:
     video.append(frame)
 
 
+
+
     sct_next.remove()
     sct_old.remove()
     old_x = next_x
     old_y = next_y
 
 
-imageio.mimwrite("/home/sasha/Desktop/python/videos/PSG.mp4", video, fps=2)
+
+imageio.mimwrite("/home/sasha/Desktop/python/videos/SMA.mp4", video, fps=2)
 
 
 print("Finished Sampling")
