@@ -34,13 +34,11 @@ text = ax[1,1].text(0, 0, "", fontsize=8)
 
 #initialize variables
 exp_data = np.zeros(true_data.shape)
-old_x = 0
-old_y = 0
+old_x = 1
+old_y = 1
 
 
 #CONSTANTS
-k = 0.1
-power = 20
 blur_const = 4
 NUMBER_OF_SAMPLES = 50
 
