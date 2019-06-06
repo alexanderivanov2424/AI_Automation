@@ -50,6 +50,14 @@ def interpolateData(measurement_array,dataGrid):
             full_data[i] = np.mean(measurement_array[list(avg)],axis=0)
     return full_data
 
+def interpolateDataAvg(measurement_array):
+    full_data = measurement_array.copy()
+    avg = np.mean([x for x in full_data if not x[0] == 0.],axis=0)
+    for i,x in enumerate(full_data):
+        if x[0] == 0.:
+            full_data[i] = avg
+    return full_data
+
 def similarity(V1,V2):
     return np.dot(V1,V2)/np.linalg.norm(V1)/np.linalg.norm(V2)
 

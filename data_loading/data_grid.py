@@ -85,9 +85,9 @@ class DataGrid:
         return data
 
     def in_grid(self,x,y):
-        if x > 15 or x < 0:
+        if x > 15 or x <= 0:
             return False
-        if y > 15 or y < 0:
+        if y > 15 or y <= 0:
             return False
         if y == 1 or y == 15:
             if x < 6 or x > 10:
