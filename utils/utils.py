@@ -14,7 +14,7 @@ def plotDataGrid(ax,sim_array,dataGrid):
     ax.imshow(grid)
 
 #Note empty data starts with a zero reading
-def interpolateData(measurement_array,dataGrid):
+def interpolateData(measurement_array,count,dataGrid):
 
 
     full_data = measurement_array.copy()
@@ -33,11 +33,11 @@ def interpolateData(measurement_array,dataGrid):
             cur.clear()
             avg.clear()
             cur.add(i+1)
-            while len(avg) < 4:
+            while len(avg) < count:
                 next_cur = set()
                 for C in cur:
                     for K in dataGrid.neighbors(C).values():
-                        if len(avg) >= 4:
+                        if len(avg) >= count:
                             break
                         if not K in searched:
                             next_cur.add(K)

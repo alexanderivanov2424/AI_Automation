@@ -22,6 +22,7 @@ path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
 dataGrid = DataGrid(path)
 
 video = []
+ = []
 
 fig, ax = plt.subplots(nrows=2, ncols=3)
 canvas = FigureCanvasAgg(fig)
@@ -138,7 +139,7 @@ for n in range(50):
 
 
     if n > 4:
-        full_data = interpolateData(M,dataGrid)
+        full_data = interpolateData(M,4,dataGrid)
         exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
 
 

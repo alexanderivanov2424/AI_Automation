@@ -143,7 +143,7 @@ while len(S) < 50:
     text.set_text(s)
 
 
-    full_data = interpolateData(M,dataGrid)
+    full_data = interpolateData(M,4,dataGrid)
     exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
 
 
