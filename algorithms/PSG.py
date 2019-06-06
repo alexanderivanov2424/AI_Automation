@@ -16,10 +16,16 @@ import numpy as np
 path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
 dataGrid = DataGrid(path)
 
-fig, ax = plt.subplots(nrows=1, ncols=2)
+fig, ax = plt.subplots(nrows=2, ncols=3)
+
+k = .95
+
+power = 12
+
+blur_const = 3
 
 M = np.empty(shape=(dataGrid.size,dataGrid.data_length))
-G = np.full(shape=dataGrid.size,fill_value = .99)
+G = np.full(shape=dataGrid.size,fill_value = .1)
 S = set()
 
 
@@ -27,15 +33,13 @@ S = set()
 def get_similarity(d1,d2):
     return similarity(M[d1],M[d2])
 
-#Note: cells numbering starts at 1
-data_range = range(1,dataGrid.size+1)
 
 def blur(G):
     T = np.zeros(shape=dataGrid.dims)
     for i,v in enumerate(G):
         x,y = dataGrid.coord(i)
         T[x-1][y-1] = v
-    T_blurred = gaussian_filter(T, sigma=5)
+    T_blurred = gaussian_filter(T, sigma=blur_const)
     final = np.empty(shape=G.shape)
     for i,v in enumerate(G):
         x,y = dataGrid.coord(i)
@@ -44,9 +48,11 @@ def blur(G):
 
 for n in range(30):
 
-    MIN = np.full(shape=G.shape,fill_value = .95)
-    blurred = blur(G-MIN)
+    blurred = blur(np.power(G,power))
     G_norm = blurred / np.sum(blurred)
+
+    #Note: cells numbering starts at 1
+    data_range = range(1,dataGrid.size+1)
 
     cells = np.random.choice(data_range, 1, p=G_norm)
     while cells[0] in S:
@@ -57,21 +63,41 @@ for n in range(30):
 
     M[C-1] = dataGrid.data_at_loc(C)[:,1]  #"taking a measurement"
 
-    sim_list = []
+    def update(C):
+        sim_list = []
+        for K in dataGrid.neighbors(C).values():
+            if not K in S:
+                M[K-1] = dataGrid.data_at_loc(K)[:,1]  #"taking a measurement"
+                S.add(K)
+            sim_list = [get_similarity(C-1,K-1)] + sim_list
+        G[C-1] = max(sim_list)
+
+    update(C)
 
     for K in dataGrid.neighbors(C).values():
-        if not K in S:
-            M[K-1] = dataGrid.data_at_loc(K)[:,1]  #"taking a measurement"
-            S.add(K)
-        sim_list = [get_similarity(C-1,K-1)] + sim_list
+        sur = True
+        for K_2 in dataGrid.neighbors(K).values():
+            if not K_2 in S:
+                sur = False
+                break
+        if sur:
+            update(K)
 
+    plotDataGrid(ax[0,0],np.power(G,power),dataGrid)
+    plotDataGrid(ax[0,1],G_norm,dataGrid)
 
-    G[C-1] = max(sim_list)
+    full_data = interpolateData(M,dataGrid)
+    exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
+    ax[0,2].imshow(exp_data)
 
-    plotDataGrid(ax[0],G,dataGrid)
-    plotDataGrid(ax[1],G_norm,dataGrid)
+    measured_points = np.zeros(dataGrid.dims)
+    for s in S:
+        x,y = dataGrid.coord(s)
+        measured_points[x-1,y-1] = 1
+    ax[1,0].imshow(measured_points)
+
     plt.draw()
-    plt.pause(.001)
+    plt.pause(.5)
 
 full_data = interpolateData(M,dataGrid)
 exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))

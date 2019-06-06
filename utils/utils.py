@@ -15,6 +15,8 @@ def plotDataGrid(ax,sim_array,dataGrid):
 
 #Note empty data starts with a zero reading
 def interpolateData(measurement_array,dataGrid):
+
+
     full_data = measurement_array.copy()
 
     no_data = np.zeros(shape=len(measurement_array))
@@ -31,10 +33,12 @@ def interpolateData(measurement_array,dataGrid):
             cur.clear()
             avg.clear()
             cur.add(i+1)
-            while len(avg) < 2:
+            while len(avg) < 4:
                 next_cur = set()
                 for C in cur:
                     for K in dataGrid.neighbors(C).values():
+                        if len(avg) >= 4:
+                            break
                         if not K in searched:
                             next_cur.add(K)
                             searched.add(K)
@@ -57,7 +61,7 @@ def getSimilarityMatrix(measurement_array,dataGrid,keys = ['up', 'left', 'right'
     for i,val in enumerate(measurement_array):
         x,y = dataGrid.coord(i+1)
         neigh = [dataGrid.neighbors(i+1)[k] for k in dataGrid.neighbors(i+1).keys() if k in keys]
-        sim_values = [similarity(val,dataGrid.data_at_loc(x)) for x in neigh]
+        sim_values = [similarity(val,measurement_array[x-1]) for x in neigh]
         if len(sim_values) == 0:
             grid[x-1][y-1] = 1
             continue
