@@ -1,7 +1,5 @@
 #Similarity from measurement Avereges
 
-
-
 from data_loading.data_grid import DataGrid
 from utils.utils import plotDataGrid, interpolateData, similarity, interpolateDataAvg
 from utils.utils import getSimilarityMatrix, clipSimilarityMatrix
@@ -14,35 +12,41 @@ import imageio
 import numpy as np
 import time
 
+#seed algorithm
+seed = 0
+np.random.seed(seed)
 
-
-
-#folder with data files
+#set up DataGrid object
 path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
 dataGrid = DataGrid(path)
 
+#set up array to store plots
 video = []
- = []
+file_name = "SMA-" + str(seed)
 
+
+#set up the visuals
 fig, ax = plt.subplots(nrows=2, ncols=3)
 canvas = FigureCanvasAgg(fig)
-
 true_data = clipSimilarityMatrix(getSimilarityMatrix(dataGrid.get_data_array(),dataGrid))
 ax[1,2].imshow(true_data)
 text = ax[1,1].text(0, 0, "", fontsize=8)
+
+#initialize variables
 exp_data = np.zeros(true_data.shape)
 old_x = 0
 old_y = 0
 
+
+#CONSTANTS
 k = 0.1
-
 power = 20
-
 blur_const = 4
+NUMBER_OF_SAMPLES = 50
 
+#DATA STRUCTURES
 M = np.empty(shape=(dataGrid.size,dataGrid.data_length))
 S = set()
-
 
 #cosine similarity function using two grid positions
 def get_similarity(d1,d2):
@@ -52,6 +56,7 @@ def get_similarity(d1,d2):
         print(d2)
     return similarity(M[d1],M[d2])
 
+#Used to convert blurred similarity matrix to probability distribution
 def convertTo1D(G):
     ret = np.empty(dataGrid.size)
     for i in range(dataGrid.size):
@@ -59,10 +64,10 @@ def convertTo1D(G):
         ret[i] = G[x-1][y-1]
     return ret
 
+#Setting up Timer and time record
 times = []
 total_timer = 0.
 timer = time.time()
-
 
 def start_time():
     global timer
@@ -80,11 +85,17 @@ def get_time():
     return t
 
 
-#initial Sample
-C = np.random.choice(range(1,dataGrid.size+1), 1)[0]
-M[C-1] = dataGrid.data_at_loc(C)[:,1]
+#__________________________________________________
+# START
 
-for n in range(50):
+
+# INITIAL SAMPLES
+C_list = np.random.choice(range(1,dataGrid.size+1), 3)
+for C in C_list:
+    M[C-1] = dataGrid.data_at_loc(C)[:,1]
+    S.add(C)
+
+while len(S) < NUMBER_OF_SAMPLES:
 
     start_time()
 
@@ -97,7 +108,7 @@ for n in range(50):
         Distribution = flat / np.sum(flat)
 
     stop_time()
-
+    #Plotting
     ax[0,0].imshow(dissim)
     ax[0,1].imshow(blurred)
     ax[0,2].imshow(exp_data)
@@ -107,7 +118,6 @@ for n in range(50):
         x,y = dataGrid.coord(s)
         measured_points[x-1,y-1] = 1
     ax[1,0].imshow(measured_points)
-
     start_time()
 
     #Note: cells numbering starts at 1
@@ -116,12 +126,14 @@ for n in range(50):
     cells = np.random.choice(data_range, 1, p=Distribution)
     while cells[0] in S:
         cells = np.random.choice(data_range, 1, p=Distribution)
-
     C = cells[0]
+
+
     M[C-1] = dataGrid.data_at_loc(C)[:,1] #"taking a measurement"
     S.add(C)
 
     stop_time()
+    #Additional Plotting
     next_x,next_y = dataGrid.coord(C)
     sct_next = ax[0,1].scatter(next_y-1,next_x-1,s=15,c='red')
     sct_old = ax[0,1].scatter(old_y-1,old_x-1,s=15,c='purple')
@@ -138,23 +150,17 @@ for n in range(50):
     text.set_text(s)
 
 
-    if n > 4:
-        full_data = interpolateData(M,4,dataGrid)
-        exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
-
-
+    full_data = interpolateData(M,3,dataGrid)
+    exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
 
     plt.draw()
     canvas.draw()
 
-    #print("saving frame")
+    #saving frame to video
     frame = np.fromstring(canvas.tostring_rgb(), dtype='uint8')
     w,h = canvas.get_width_height()
     frame = np.reshape(frame,(h,w,3))
     video.append(frame)
-
-
-
 
     sct_next.remove()
     sct_old.remove()
@@ -162,15 +168,20 @@ for n in range(50):
     old_y = next_y
 
 
+# END
+#__________________________________________________
 
-imageio.mimwrite("/home/sasha/Desktop/python/videos/SMA.mp4", video, fps=2)
+
+
+#save video as file_name
+imageio.mimwrite("/home/sasha/Desktop/python/videos/" + file_name + ".mp4", video, fps=2)
 
 
 print("Finished Sampling")
 print("_________________")
 
 
-full_data = interpolateData(M,dataGrid)
+full_data = interpolateData(M,4,dataGrid)
 exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
 
 print("Mean Squared Error: ")
