@@ -68,7 +68,7 @@ def interpolateDataAvg(measurement_array):
 def similarity(V1,V2):
     return np.dot(V1,V2)/np.linalg.norm(V1)/np.linalg.norm(V2)
 
-def getSimilarityMatrix(measurement_array,dataGrid,keys = ['up', 'left', 'right', 'down']):
+def getDissimilarityMatrix(measurement_array,dataGrid,keys = ['up', 'left', 'right', 'down']):
     #create grid
     grid = np.zeros(shape=dataGrid.dims)
 
@@ -87,6 +87,14 @@ def clipSimilarityMatrix(data):
     min = np.min(data.ravel()[np.nonzero(data.ravel())])
     min_array = np.full(data.shape,min)
     return np.clip(data - min_array,0,1)
+
+def trim_outside_grid(data,dataGrid):
+    arr = data.copy()
+    for x in range(arr.shape[0]):
+        for y in range(arr.shape[1]):
+            if not dataGrid.in_grid(x+1,y+1):
+                arr[x,y] = np.nan
+    return arr
 
 
 def dict_to_csv(dict,path,file_name):

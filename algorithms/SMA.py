@@ -1,8 +1,8 @@
 #Similarity from measurement Avereges
 
 from data_loading.data_grid import DataGrid
-from utils.utils import plotDataGrid, interpolateData, similarity, interpolateDataAvg
-from utils.utils import getSimilarityMatrix, clipSimilarityMatrix
+from utils.utils import trim_outside_grid, interpolateData, similarity, interpolateDataAvg
+from utils.utils import getDissimilarityMatrix, clipSimilarityMatrix, dict_to_csv
 
 from scipy.ndimage.filters import gaussian_filter
 
@@ -38,7 +38,7 @@ np.random.seed(seed)
 #set up DataGrid object
 path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
 dataGrid = DataGrid(path)
-true_data = clipSimilarityMatrix(getSimilarityMatrix(dataGrid.get_data_array(),dataGrid))
+true_data = clipSimilarityMatrix(getDissimilarityMatrix(dataGrid.get_data_array(),dataGrid))
 
 
 
@@ -54,8 +54,8 @@ if args.video or args.graphics:
     ax = fig.subplots(nrows=2, ncols=3)
     [[x.axis('off') for x in y] for y in ax]
     fig.tight_layout()
-    
-    ax[1,2].imshow(true_data)
+
+    ax[1,2].imshow(trim_outside_grid(true_data,dataGrid))
     text = ax[1,1].text(0, 0, "", fontsize=8)
 
 
@@ -120,11 +120,12 @@ for C in C_list:
     M[C-1] = dataGrid.data_at_loc(C)[:,1]
     S.add(C)
 
+i = 0
 while len(S) < NUMBER_OF_SAMPLES:
-
+    i += 1
     start_time()
 
-    dissim = getSimilarityMatrix(interpolateDataAvg(M),dataGrid)
+    dissim = getDissimilarityMatrix(interpolateDataAvg(M),dataGrid)
     blurred = gaussian_filter(dissim, sigma=blur_const)
     flat = convertTo1D(blurred)
     if  np.sum(flat) == 0:
@@ -135,9 +136,9 @@ while len(S) < NUMBER_OF_SAMPLES:
     stop_time()
     #Plotting
     if args.video or args.graphics:
-        ax[0,0].imshow(dissim)
-        ax[0,1].imshow(blurred)
-        ax[0,2].imshow(exp_data)
+        ax[0,0].imshow(trim_outside_grid(dissim,dataGrid))
+        ax[0,1].imshow(trim_outside_grid(blurred,dataGrid))
+        ax[0,2].imshow(trim_outside_grid(exp_data,dataGrid))
 
         measured_points = np.zeros(dataGrid.dims)
         for s in S:
@@ -197,7 +198,7 @@ while len(S) < NUMBER_OF_SAMPLES:
 
 
     full_data = interpolateData(M,4,dataGrid)
-    exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
+    exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
 
     #resetting scatter plot and points
     if args.video or args.graphics:

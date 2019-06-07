@@ -2,8 +2,8 @@
 
 
 from data_loading.data_grid import DataGrid
-from utils.utils import plotDataGrid, interpolateData, similarity
-from utils.utils import getSimilarityMatrix, clipSimilarityMatrix, dict_to_csv
+from utils.utils import plotDataGrid,trim_outside_grid, interpolateData, similarity
+from utils.utils import getDissimilarityMatrix, clipSimilarityMatrix, dict_to_csv
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from scipy.ndimage.filters import gaussian_filter
@@ -45,7 +45,7 @@ np.random.seed(seed)
 #set up DataGrid object
 data_path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
 dataGrid = DataGrid(data_path)
-true_data = clipSimilarityMatrix(getSimilarityMatrix(dataGrid.get_data_array(),dataGrid))
+true_data = clipSimilarityMatrix(getDissimilarityMatrix(dataGrid.get_data_array(),dataGrid))
 
 
 #set up array to store plots
@@ -61,7 +61,7 @@ if args.video or args.graphics:
     [[x.axis('off') for x in y] for y in ax]
     fig.tight_layout()
 
-    ax[1,2].imshow(true_data)
+    ax[1,2].imshow(trim_outside_grid(true_data,dataGrid))
     text = ax[1,1].text(0, 0, "", fontsize=8)
 
 #initialize variables
@@ -149,7 +149,7 @@ while len(S) < NUMBER_OF_SAMPLES:
     if args.video or args.graphics:
         plotDataGrid(ax[0,0],np.power(G,power),dataGrid)
         plotDataGrid(ax[0,1],G_norm,dataGrid)
-        ax[0,2].imshow(exp_data)
+        ax[0,2].imshow(trim_outside_grid(exp_data,dataGrid))
 
         measured_points = np.full(dataGrid.dims,.1)
         for s in S:
@@ -212,7 +212,7 @@ while len(S) < NUMBER_OF_SAMPLES:
 
 
     full_data = interpolateData(M,4,dataGrid)
-    exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
+    exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
 
     #resetting scatter plot and points
     if args.video or args.graphics:
@@ -247,7 +247,7 @@ print("_________________")
 
 
 full_data = interpolateData(M,4,dataGrid)
-exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
+exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
 
 print("Mean Squared Error: ")
 print(np.square(np.subtract(exp_data, true_data)).mean())
