@@ -3,7 +3,7 @@
 
 from data_loading.data_grid import DataGrid
 from utils.utils import plotDataGrid, interpolateData, similarity
-from utils.utils import getSimilarityMatrix, clipSimilarityMatrix
+from utils.utils import getSimilarityMatrix, clipSimilarityMatrix, dict_to_csv
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 from scipy.ndimage.filters import gaussian_filter
@@ -51,6 +51,7 @@ true_data = clipSimilarityMatrix(getSimilarityMatrix(dataGrid.get_data_array(),d
 #set up array to store plots
 if args.video:
     video = []
+    data_log = {}
     file_name = "PSG-" + str(seed)
 
 #set up the visuals
@@ -58,7 +59,8 @@ if args.video or args.graphics:
     fig = plt.figure()
     ax = fig.subplots(nrows=2, ncols=3)
     [[x.axis('off') for x in y] for y in ax]
-
+    fig.tight_layout()
+    
     ax[1,2].imshow(true_data)
     text = ax[1,1].text(0, 0, "", fontsize=8)
 
@@ -127,7 +129,9 @@ def get_time():
 # START
 
 # MAIN LOOP
+i = 0
 while len(S) < NUMBER_OF_SAMPLES:
+    i += 1
     start_time()
     # Create Probability Distribution
     blurred = blur(np.power(G,power))
@@ -177,15 +181,20 @@ while len(S) < NUMBER_OF_SAMPLES:
 
     #Additional Plotting
     if args.video or args.graphics:
+        mse = float(np.square(np.subtract(exp_data, true_data)).mean())
+        l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
+        l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))
+        data_log[i] = {'mse':mse,"l2":l2,"l1":l1}
+
         times = [get_time()] + times
         s = "Avg Sample Time: \n"
         s += str(float(sum(times)/len(times))) + "\n"
         s += "Mean Squared Error: \n"
-        s += str(float(np.square(np.subtract(exp_data, true_data)).mean())) + "\n"
+        s += str(mse) + "\n"
         s += "L2 Distance: \n"
-        s += str(float(np.sum(np.square(np.subtract(exp_data, true_data))))) + "\n"
+        s += str(l2) + "\n"
         s += "L1 Distance: \n"
-        s+= str(float(np.sum(np.abs(np.subtract(exp_data, true_data))))) + "\n"
+        s+= str(l1) + "\n"
         text.set_text(s)
 
     #plotting graphics to screen
@@ -218,13 +227,21 @@ while len(S) < NUMBER_OF_SAMPLES:
 #__________________________________________________
 
 
-
 #save video as file_name
 if args.video:
-    data_path = "/home/sasha/Desktop/python/videos/"
-    imageio.mimwrite(data_path + file_name + ".mp4", video, fps=2)
+    video_path = "/home/sasha/Desktop/python/videos/"
+    imageio.mimwrite(video_path + file_name + ".mp4", video, fps=2)
+    data_path = "/home/sasha/Desktop/python/logs/"
+    dict_to_csv(data_log,data_path,file_name)
+    print("Video saved to " + video_path)
+    print("Data log save to " + data_path)
 
 
+#leave plot open
+if args.graphics:
+    plt.show()
+
+print()
 print("Finished Sampling")
 print("_________________")
 

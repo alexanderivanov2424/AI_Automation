@@ -3,6 +3,7 @@ from data_loading.data_grid import DataGrid
 
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 
 
 
@@ -80,3 +81,16 @@ def clipSimilarityMatrix(data, eps = .01):
     min = np.min(data.ravel()[np.nonzero(data.ravel())])
     min_array = np.full(data.shape,min*(1-eps))
     return np.clip(data - min_array,0,1)
+
+
+def dict_to_csv(dict,path,file_name):
+    with open(path + file_name + ".csv", 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        for k, v in dict.items():
+           writer.writerow([k, v])
+
+def csv_to_dict(path,file_name):
+    with open(path + file_name + ".csv") as csv_file:
+        reader = csv.reader(csv_file)
+        dict = dict(reader)
+        return dict

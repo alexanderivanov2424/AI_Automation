@@ -45,6 +45,7 @@ true_data = clipSimilarityMatrix(getSimilarityMatrix(dataGrid.get_data_array(),d
 #set up array to store plots
 if args.video:
     video = []
+    data_log = {}
     file_name = "PSG-" + str(seed)
 
 #set up the visuals
@@ -52,7 +53,8 @@ if args.video or args.graphics:
     fig = plt.figure()
     ax = fig.subplots(nrows=2, ncols=3)
     [[x.axis('off') for x in y] for y in ax]
-
+    fig.tight_layout()
+    
     ax[1,2].imshow(true_data)
     text = ax[1,1].text(0, 0, "", fontsize=8)
 
@@ -163,15 +165,20 @@ while len(S) < NUMBER_OF_SAMPLES:
         sct_next = ax[0,1].scatter(next_y-1,next_x-1,s=15,c='red')
         sct_old = ax[0,1].scatter(old_y-1,old_x-1,s=15,c='purple')
 
+        mse = float(np.square(np.subtract(exp_data, true_data)).mean())
+        l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
+        l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))
+        data_log[i] = {'mse':mse,"l2":l2,"l1":l1}
+
         times = [get_time()] + times
         s = "Avg Sample Time: \n"
         s += str(float(sum(times)/len(times))) + "\n"
         s += "Mean Squared Error: \n"
-        s += str(float(np.square(np.subtract(exp_data, true_data)).mean())) + "\n"
+        s += str(mse) + "\n"
         s += "L2 Distance: \n"
-        s += str(float(np.sum(np.square(np.subtract(exp_data, true_data))))) + "\n"
+        s += str(l2) + "\n"
         s += "L1 Distance: \n"
-        s+= str(float(np.sum(np.abs(np.subtract(exp_data, true_data))))) + "\n"
+        s+= str(l1) + "\n"
         text.set_text(s)
 
 
@@ -206,9 +213,20 @@ while len(S) < NUMBER_OF_SAMPLES:
 
 
 #save video as file_name
-imageio.mimwrite("/home/sasha/Desktop/python/videos/" + file_name + ".mp4", video, fps=2)
+if args.video:
+    video_path = "/home/sasha/Desktop/python/videos/"
+    imageio.mimwrite(video_path + file_name + ".mp4", video, fps=2)
+    data_path = "/home/sasha/Desktop/python/logs/"
+    dict_to_csv(data_log,data_path,file_name)
+    print("Video saved to " + video_path)
+    print("Data log save to " + data_path)
 
 
+#leave plot open
+if args.graphics:
+    plt.show()
+
+print()
 print("Finished Sampling")
 print("_________________")
 
