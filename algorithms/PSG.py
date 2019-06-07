@@ -60,7 +60,7 @@ if args.video or args.graphics:
     ax = fig.subplots(nrows=2, ncols=3)
     [[x.axis('off') for x in y] for y in ax]
     fig.tight_layout()
-    
+
     ax[1,2].imshow(true_data)
     text = ax[1,1].text(0, 0, "", fontsize=8)
 
@@ -151,7 +151,7 @@ while len(S) < NUMBER_OF_SAMPLES:
         plotDataGrid(ax[0,1],G_norm,dataGrid)
         ax[0,2].imshow(exp_data)
 
-        measured_points = np.zeros(dataGrid.dims)
+        measured_points = np.full(dataGrid.dims,.1)
         for s in S:
             x,y = dataGrid.coord(s)
             measured_points[x-1,y-1] = 1

@@ -6,13 +6,19 @@ import numpy as np
 import csv
 
 
+#replace 0 values with nan
+#used for plotting
+def rep_0(arr):
+    r = arr.copy()
+    r[r==0.] = np.nan
+    return r
 
 def plotDataGrid(ax,sim_array,dataGrid):
     grid = np.zeros(shape=dataGrid.dims)
     for i,v in enumerate(sim_array):
         x,y = dataGrid.coord(i)
         grid[x-1][y-1] = v
-    ax.imshow(grid)
+    ax.imshow(rep_0(grid))
 
 #Note empty data starts with a zero reading
 def interpolateData(measurement_array,count,dataGrid):
@@ -77,9 +83,9 @@ def getSimilarityMatrix(measurement_array,dataGrid,keys = ['up', 'left', 'right'
         grid[x-1][y-1] = 1 - np.amin(sim_values)
     return grid
 
-def clipSimilarityMatrix(data, eps = .01):
+def clipSimilarityMatrix(data):
     min = np.min(data.ravel()[np.nonzero(data.ravel())])
-    min_array = np.full(data.shape,min*(1-eps))
+    min_array = np.full(data.shape,min)
     return np.clip(data - min_array,0,1)
 
 
