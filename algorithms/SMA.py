@@ -37,7 +37,8 @@ np.random.seed(seed)
 
 #set up DataGrid object
 path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
-dataGrid = DataGrid(path)
+regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSub_1D.csv"""
+dataGrid = DataGrid(data_path,regex)
 true_data = clipSimilarityMatrix(getDissimilarityMatrix(dataGrid.get_data_array(),dataGrid))
 
 

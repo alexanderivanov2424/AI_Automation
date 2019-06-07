@@ -12,7 +12,12 @@ import math
 
 #folder with data files
 path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
-dataGrid = DataGrid(path)
+regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSub_1D.csv"""
+
+
+path = "/home/sasha/Desktop/TiNiSn_600C-20190607T173525Z-001/TiNiSn_600C/"
+regex = """TiNiSn_600C_Y20190219_14x14_t65_(?P<num>.*?)_bkgdSub_1D.csv"""
+dataGrid = DataGrid(path,regex)
 
 
 #cosine similarity function using two grid positions

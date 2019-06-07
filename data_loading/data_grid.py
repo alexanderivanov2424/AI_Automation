@@ -6,14 +6,12 @@ import re
 
 class DataGrid:
 
-    def __init__(self, path):
+    def __init__(self, path, regex):
         files = os.listdir(path)
 
 
         #regex to parse grid location from file
-        pattern = re.compile("""TiNiSn_500C_Y20190218_14x14_t60_
-                                 (?P<num>.*?)
-                                 _bkgdSub_1D.csv""", re.VERBOSE)
+        pattern = re.compile(regex, re.VERBOSE)
 
         #load csv files into dictionary
         self.data ={}
