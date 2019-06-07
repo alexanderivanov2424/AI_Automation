@@ -1,4 +1,4 @@
-#Probibalistic Similarity Gradient
+#Probabilistic Similarity Gradient
 
 
 from data_loading.data_grid import DataGrid
@@ -13,37 +13,66 @@ import imageio
 import numpy as np
 import time
 
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Run Probabilistic Similarity Gradient Simulation')
+parser.add_argument('-s','--seed', type=int, default=0,
+                    help='seed algorithm')
+parser.add_argument('-k','--G_init', type=float, default=0.1,
+                    help='initial value for similarities')
+parser.add_argument('-p','--power', type=int, default=20,
+                    help='y=x^p scale for similarities')
+parser.add_argument('-b','--blur', type=int, default=4,
+                    help='sigma value for gaussian blur')
+parser.add_argument('-N', type=int, default=50,
+                    help='number of samples')
+parser.add_argument('-v','--video', action='store_true',
+                    help="Save training video")
+parser.add_argument('--graphics', action='store_true',
+                    help="Show plot real time")
+parser.add_argument('--delay', type=float, default=0.5,
+                    help='delay between video frames')
+parser.set_defaults(video=False)
+parser.set_defaults(graphics=False)
+args = parser.parse_args()
+
+
 #seed algorithm
-seed = 0
+seed = args.seed
 np.random.seed(seed)
 
 #set up DataGrid object
-path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
-dataGrid = DataGrid(path)
+data_path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
+dataGrid = DataGrid(data_path)
+true_data = clipSimilarityMatrix(getSimilarityMatrix(dataGrid.get_data_array(),dataGrid))
+
 
 #set up array to store plots
-video = []
-file_name = "PSG-" + str(seed)
-
+if args.video:
+    video = []
+    file_name = "PSG-" + str(seed)
 
 #set up the visuals
-fig, ax = plt.subplots(nrows=2, ncols=3)
-canvas = FigureCanvasAgg(fig)
-true_data = clipSimilarityMatrix(getSimilarityMatrix(dataGrid.get_data_array(),dataGrid))
-ax[1,2].imshow(true_data)
-text = ax[1,1].text(0, 0, "", fontsize=8)
+if args.video or args.graphics:
+    fig = plt.figure()
+    ax = fig.subplots(nrows=2, ncols=3)
+    [[x.axis('off') for x in y] for y in ax]
+
+    ax[1,2].imshow(true_data)
+    text = ax[1,1].text(0, 0, "", fontsize=8)
 
 #initialize variables
-exp_data = np.zeros(true_data.shape)
+exp_data = np.zeros(true_data.shape) #experimental data
 old_x = 1
 old_y = 1
 
 
 #CONSTANTS
-k = 0.1
-power = 20
-blur_const = 4
-NUMBER_OF_SAMPLES = 50
+k = args.G_init
+power = args.power
+blur_const = args.blur
+NUMBER_OF_SAMPLES = args.N
 
 #DATA STRUCTURES
 M = np.empty(shape=(dataGrid.size,dataGrid.data_length))
@@ -113,20 +142,20 @@ while len(S) < NUMBER_OF_SAMPLES:
 
     stop_time()
     # Plotting
-    plotDataGrid(ax[0,0],np.power(G,power),dataGrid)
-    plotDataGrid(ax[0,1],G_norm,dataGrid)
-    ax[0,2].imshow(exp_data)
+    if args.video or args.graphics:
+        plotDataGrid(ax[0,0],np.power(G,power),dataGrid)
+        plotDataGrid(ax[0,1],G_norm,dataGrid)
+        ax[0,2].imshow(exp_data)
 
-    measured_points = np.zeros(dataGrid.dims)
-    for s in S:
-        x,y = dataGrid.coord(s)
-        measured_points[x-1,y-1] = 1
-    ax[1,0].imshow(measured_points)
+        measured_points = np.zeros(dataGrid.dims)
+        for s in S:
+            x,y = dataGrid.coord(s)
+            measured_points[x-1,y-1] = 1
+        ax[1,0].imshow(measured_points)
 
-    next_x,next_y = dataGrid.coord(C)
-    sct_next = ax[0,1].scatter(next_y-1,next_x-1,s=15,c='red')
-    sct_old = ax[0,1].scatter(old_y-1,old_x-1,s=15,c='purple')
-
+        next_x,next_y = dataGrid.coord(C)
+        sct_next = ax[0,1].scatter(next_y-1,next_x-1,s=15,c='red')
+        sct_old = ax[0,1].scatter(old_y-1,old_x-1,s=15,c='purple')
     start_time()
 
     #Take a measurement at C
@@ -147,37 +176,41 @@ while len(S) < NUMBER_OF_SAMPLES:
     stop_time()
 
     #Additional Plotting
+    if args.video or args.graphics:
+        times = [get_time()] + times
+        s = "Avg Sample Time: \n"
+        s += str(float(sum(times)/len(times))) + "\n"
+        s += "Mean Squared Error: \n"
+        s += str(float(np.square(np.subtract(exp_data, true_data)).mean())) + "\n"
+        s += "L2 Distance: \n"
+        s += str(float(np.sum(np.square(np.subtract(exp_data, true_data))))) + "\n"
+        s += "L1 Distance: \n"
+        s+= str(float(np.sum(np.abs(np.subtract(exp_data, true_data))))) + "\n"
+        text.set_text(s)
 
-    times = [get_time()] + times
-    s = "Avg Sample Time: \n"
-    s += str(float(sum(times)/len(times))) + "\n"
-    s += "Mean Squared Error: \n"
-    s += str(float(np.square(np.subtract(exp_data, true_data)).mean())) + "\n"
-    s += "L2 Distance: \n"
-    s += str(float(np.sum(np.square(np.subtract(exp_data, true_data))))) + "\n"
-    s += "L1 Distance: \n"
-    s+= str(float(np.sum(np.abs(np.subtract(exp_data, true_data))))) + "\n"
-    text.set_text(s)
+    #plotting graphics to screen
+    if args.graphics:
+        plt.draw()
+        plt.pause(args.delay)
+
+    #saving frame to video
+    if args.video:
+        fig.canvas.draw()
+        frame = np.fromstring(fig.canvas.tostring_rgb(), dtype='uint8')
+        w,h = fig.canvas.get_width_height()
+        frame = np.reshape(frame,(h,w,3))
+        video.append(frame)
 
 
     full_data = interpolateData(M,4,dataGrid)
     exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
 
-
-    plt.draw()
-    canvas.draw()
-
-    #saving frame to video
-    frame = np.fromstring(canvas.tostring_rgb(), dtype='uint8')
-    w,h = canvas.get_width_height()
-    frame = np.reshape(frame,(h,w,3))
-    video.append(frame)
-
-
-    sct_next.remove()
-    sct_old.remove()
-    old_x = next_x
-    old_y = next_y
+    #resetting scatter plot and points
+    if args.video or args.graphics:
+        sct_next.remove()
+        sct_old.remove()
+        old_x = next_x
+        old_y = next_y
 
 
 
@@ -187,7 +220,9 @@ while len(S) < NUMBER_OF_SAMPLES:
 
 
 #save video as file_name
-imageio.mimwrite("/home/sasha/Desktop/python/videos/" + file_name + ".mp4", video, fps=2)
+if args.video:
+    data_path = "/home/sasha/Desktop/python/videos/"
+    imageio.mimwrite(data_path + file_name + ".mp4", video, fps=2)
 
 
 print("Finished Sampling")
