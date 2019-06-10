@@ -1,6 +1,7 @@
 #Delaunay Triangulation
 
-from data_loading.data_grid import DataGrid
+from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
+
 from utils.utils import plotDataGrid, interpolateData, similarity, interpolateDataAvg
 from utils.utils import getSimilarityMatrix, clipSimilarityMatrix
 
@@ -22,9 +23,7 @@ seed = 0
 np.random.seed(seed)
 
 #set up DataGrid object
-path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
-regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSub_1D.csv"""
-dataGrid = DataGrid(data_path,regex)
+dataGrid = DataGrid_TiNiSn_500C()
 
 
 #Plotting

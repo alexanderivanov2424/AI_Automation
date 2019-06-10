@@ -1,7 +1,8 @@
 #Probabilistic Similarity Gradient
 
 
-from data_loading.data_grid import DataGrid
+from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
+
 from utils.utils import plotDataGrid,trim_outside_grid, interpolateData, similarity
 from utils.utils import getDissimilarityMatrix, clipSimilarityMatrix, dict_to_csv
 from matplotlib.backends.backend_agg import FigureCanvasAgg
@@ -43,9 +44,7 @@ seed = args.seed
 np.random.seed(seed)
 
 #set up DataGrid object
-data_path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
-regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSub_1D.csv"""
-dataGrid = DataGrid(data_path,regex)
+dataGrid = DataGrid_TiNiSn_500C()
 true_data = clipSimilarityMatrix(getDissimilarityMatrix(dataGrid.get_data_array(),dataGrid))
 
 
@@ -57,13 +56,19 @@ if args.video:
 
 #set up the visuals
 if args.video or args.graphics:
-    fig = plt.figure()
+    fig = plt.figure(num='Probabilistic Similarity Gradient')
     ax = fig.subplots(nrows=2, ncols=3)
     [[x.axis('off') for x in y] for y in ax]
-    fig.tight_layout()
+    [[x.set_ylim(-1,15) for x in y] for y in ax]
+    ax[0,0].title.set_text('Dissimilarity\nMatrix')
+    ax[0,1].title.set_text('Sampling\nProbability')
+    ax[0,2].title.set_text('Interpolated\nMeasurements')
+    ax[1,0].title.set_text('Measurements')
+    ax[1,2].title.set_text('True Data')
 
+    fig.tight_layout()
     ax[1,2].imshow(trim_outside_grid(true_data,dataGrid))
-    text = ax[1,1].text(0, 0, "", fontsize=8)
+    text = ax[1,1].text(0, 0, "", fontsize=10)
 
 #initialize variables
 exp_data = np.zeros(true_data.shape) #experimental data
@@ -85,22 +90,18 @@ S = set()
 
 #cosine similarity function using two grid positions
 def get_similarity(d1,d2):
-    if np.linalg.norm(M[d1]) == 0.:
-        print(d1)
-    if np.linalg.norm(M[d2]) == 0.:
-        print(d2)
     return similarity(M[d1],M[d2])
 
 #define blur function to be used on flattened arrays
 def blur(G):
     T = np.zeros(shape=dataGrid.dims)
     for i,v in enumerate(G):
-        x,y = dataGrid.coord(i)
+        x,y = dataGrid.coord(i+1)
         T[x-1][y-1] = v
     T_blurred = gaussian_filter(T, sigma=blur_const)
     final = np.empty(shape=G.shape)
     for i,v in enumerate(G):
-        x,y = dataGrid.coord(i)
+        x,y = dataGrid.coord(i+1)
         final[i] = T_blurred[x-1][y-1]
     return final
 
@@ -145,6 +146,7 @@ while len(S) < NUMBER_OF_SAMPLES:
         cells = np.random.choice(data_range, 1, p=G_norm)
     C = cells[0]
 
+
     stop_time()
     # Plotting
     if args.video or args.graphics:
@@ -185,7 +187,8 @@ while len(S) < NUMBER_OF_SAMPLES:
         mse = float(np.square(np.subtract(exp_data, true_data)).mean())
         l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
         l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))
-        data_log[i] = {'mse':mse,"l2":l2,"l1":l1}
+        if args.video:
+            data_log[i] = {'mse':mse,"l2":l2,"l1":l1}
 
         times = [get_time()] + times
         s = "Avg Sample Time: \n"
@@ -250,14 +253,14 @@ print("_________________")
 full_data = interpolateData(M,4,dataGrid)
 exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
 
+
+mse = float(np.square(np.subtract(exp_data, true_data)).mean())
+l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
+l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))
+
 print("Mean Squared Error: ")
-print(np.square(np.subtract(exp_data, true_data)).mean())
-print()
-
+print(str(mse) + "\n")
 print("L2 Distance: ")
-print(np.sum(np.square(np.subtract(exp_data, true_data))))
-print()
-
+print(str(l2) + "\n")
 print("L1 Distance: ")
-print(np.sum(np.abs(np.subtract(exp_data, true_data))))
-print()
+print(str(l1) + "\n")

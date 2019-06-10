@@ -1,5 +1,5 @@
 
-from data_loading.data_grid import DataGrid
+from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
 from pyclustering.cluster.kmeans import kmeans
 from pyclustering.utils.metric import type_metric, distance_metric
@@ -11,48 +11,81 @@ import math
 
 
 #folder with data files
-path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
-regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSub_1D.csv"""
 
-
-path = "/home/sasha/Desktop/TiNiSn_600C-20190607T173525Z-001/TiNiSn_600C/"
-regex = """TiNiSn_600C_Y20190219_14x14_t65_(?P<num>.*?)_bkgdSub_1D.csv"""
-dataGrid = DataGrid(path,regex)
+dataGrid = DataGrid_TiNiSn_500C()
 
 
 #cosine similarity function using two grid positions
 def similarity(d1,d2):
     a = dataGrid.data[d1][:,1]
     b = dataGrid.data[d2][:,1]
-    return np.dot(a,b)/np.linalg.norm(a)/np.linalg.norm(b)
+    return np.amax(np.abs(a-b))
+    #return np.dot(a,b)/np.linalg.norm(a)/np.linalg.norm(b)
+
+def similarity_vector(A,B):
+    return np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
+
 
 #create grid
 grid = np.zeros(shape=(15,15))
 
 #calculate similarity values for grid
-for val in range(1,177):
+for val in range(1,178):
     x,y = dataGrid.coord(val)
     #keys = ['up','left']
     keys = ['up', 'left', 'right', 'down']
     neigh = [dataGrid.neighbors(val)[k] for k in dataGrid.neighbors(val).keys() if k in keys]
     sim_values = [similarity(val,x) for x in neigh]
     if len(sim_values) == 0:
-        grid[x-1][y-1] = 1
+        grid[y-1][x-1] = 1
         continue
-    grid[x-1][y-1] = 1 - np.amin(sim_values)
+    grid[y-1][x-1] = np.max(sim_values)
 
 
-#normalize grid based on min
-# values range (0, max - min]
-#this shows the relitive similarity values
-min = np.min(grid.ravel()[np.nonzero(grid.ravel())])
-min_array = np.full(grid.shape,min*.99)
+#min = np.min(grid.ravel()[np.nonzero(grid.ravel())])
+#min_array = np.full(grid.shape,min)
 #grid = np.clip(grid - min_array,0,1)
-grid = np.clip(grid,min,1)
+#grid = np.clip(grid,min,1)
 
+
+#scale values for plot
+#grid = np.power(grid,10)
 #show similarity plot
+
+grid[grid==0] = np.nan
 plt.imshow(grid)
+x,y = dataGrid.coord(15)
+plt.plot([x-1],[y-1],marker='o', markersize=3, color="red")
+plt.gca().invert_xaxis()
+plt.gca().invert_yaxis()
+plt.contour(range(15),range(15),grid)
 plt.show()
+
+
+#similarity based pyclustering
+#set for each grid location
+
+'''
+clusters = {}
+for k in dataGrid.data.keys():
+    clusters[k] = set(k)
+
+new_clusters = {}
+for i,group in clusters.items():
+    neigh = set()
+    for p in group:
+        [neigh.add(x) for x in dataGrid.neightbors(p).keys()]
+    avg = np.mean([dataGrid.data[x] for x in group],axis=0)
+    closest_val = None
+    closest_i = None
+    for n in neigh:
+        if similarity(n,):
+            print("NOT DONE
+
+            ")
+
+'''
+
 
 
 '''

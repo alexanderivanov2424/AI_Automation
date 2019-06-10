@@ -6,19 +6,12 @@ import numpy as np
 import csv
 
 
-#replace 0 values with nan
-#used for plotting
-def rep_0(arr):
-    r = arr.copy()
-    r[r==0.] = np.nan
-    return r
-
 def plotDataGrid(ax,sim_array,dataGrid):
     grid = np.zeros(shape=dataGrid.dims)
     for i,v in enumerate(sim_array):
-        x,y = dataGrid.coord(i)
+        x,y = dataGrid.coord(i+1)
         grid[x-1][y-1] = v
-    ax.imshow(rep_0(grid))
+    ax.imshow(trim_outside_grid(grid,dataGrid))
 
 #Note empty data starts with a zero reading
 def interpolateData(measurement_array,count,dataGrid):

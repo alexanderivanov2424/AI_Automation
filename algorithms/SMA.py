@@ -1,6 +1,7 @@
 #Similarity from measurement Avereges
 
-from data_loading.data_grid import DataGrid
+from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
+
 from utils.utils import trim_outside_grid, interpolateData, similarity, interpolateDataAvg
 from utils.utils import getDissimilarityMatrix, clipSimilarityMatrix, dict_to_csv
 
@@ -36,9 +37,7 @@ seed = args.seed
 np.random.seed(seed)
 
 #set up DataGrid object
-path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
-regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSub_1D.csv"""
-dataGrid = DataGrid(data_path,regex)
+dataGrid = DataGrid_TiNiSn_500C()
 true_data = clipSimilarityMatrix(getDissimilarityMatrix(dataGrid.get_data_array(),dataGrid))
 
 
@@ -54,6 +53,10 @@ if args.video or args.graphics:
     fig = plt.figure()
     ax = fig.subplots(nrows=2, ncols=3)
     [[x.axis('off') for x in y] for y in ax]
+    [[x.set_ylim(-1,15) for x in y] for y in ax]
+
+
+
     fig.tight_layout()
 
     ax[1,2].imshow(trim_outside_grid(true_data,dataGrid))
