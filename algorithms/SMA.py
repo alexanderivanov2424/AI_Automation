@@ -139,8 +139,6 @@ while len(S) < NUMBER_OF_SAMPLES:
         dissim[x-1][y-1] = 0
     blurred = gaussian_filter(dissim, sigma=blur_const)
     flat = convertTo1D(blurred)
-    for s in S:
-        flat[s-1] = 0
 
     if  np.sum(flat) == 0:
         Distribution = np.full(shape=(dataGrid.size),fill_value = 1/dataGrid.size)
@@ -162,8 +160,13 @@ while len(S) < NUMBER_OF_SAMPLES:
     start_time()
 
     #Note: cells numbering starts at 1
-    cells = np.random.choice(range(1,dataGrid.size+1), 1, p=Distribution)
+    data_range = range(1,dataGrid.size+1)
+
+    cells = np.random.choice(data_range, 1, p=Distribution)
+    while cells[0] in S:
+        cells = np.random.choice(data_range, 1, p=Distribution)
     C = cells[0]
+
 
     M[C-1] = dataGrid.data_at_loc(C)[:,1] #"taking a measurement"
     S.add(C)

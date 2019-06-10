@@ -32,7 +32,7 @@ parser.add_argument('-v','--video', action='store_true',
                     help="Save training video")
 parser.add_argument('--graphics', action='store_true',
                     help="Show plot real time")
-parser.add_argument('--delay', type=float, default=0.5,
+parser.add_argument('--delay', type=float, default=0.001,
                     help='delay between video frames')
 parser.set_defaults(video=False)
 parser.set_defaults(graphics=False)
