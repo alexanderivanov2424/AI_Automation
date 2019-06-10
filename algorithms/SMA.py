@@ -46,7 +46,7 @@ true_data = clipSimilarityMatrix(getDissimilarityMatrix(dataGrid.get_data_array(
 if args.video:
     video = []
     data_log = {}
-    file_name = "PSG-" + str(seed)
+    file_name = "SMA-" + str(seed)
 
 #set up the visuals
 if args.video or args.graphics:
@@ -54,13 +54,17 @@ if args.video or args.graphics:
     ax = fig.subplots(nrows=2, ncols=3)
     [[x.axis('off') for x in y] for y in ax]
     [[x.set_ylim(-1,15) for x in y] for y in ax]
-
+    ax[0,0].title.set_text('Avg-Interpolated\nDis-Matrix')
+    ax[0,1].title.set_text('Sampling\nProbability')
+    ax[0,2].title.set_text('Interpolated\nMeasurements')
+    ax[1,0].title.set_text('Measurements')
+    ax[1,2].title.set_text('True Data')
 
 
     fig.tight_layout()
 
     ax[1,2].imshow(trim_outside_grid(true_data,dataGrid))
-    text = ax[1,1].text(0, 0, "", fontsize=8)
+    text = ax[1,1].text(0, 0, "", fontsize=10)
 
 
 #initialize variables
@@ -130,8 +134,14 @@ while len(S) < NUMBER_OF_SAMPLES:
     start_time()
 
     dissim = getDissimilarityMatrix(interpolateDataAvg(M),dataGrid)
+    for s in S:
+        x,y = dataGrid.coord(s)
+        dissim[x-1][y-1] = 0
     blurred = gaussian_filter(dissim, sigma=blur_const)
     flat = convertTo1D(blurred)
+    for s in S:
+        flat[s-1] = 0
+
     if  np.sum(flat) == 0:
         Distribution = np.full(shape=(dataGrid.size),fill_value = 1/dataGrid.size)
     else:
@@ -152,13 +162,8 @@ while len(S) < NUMBER_OF_SAMPLES:
     start_time()
 
     #Note: cells numbering starts at 1
-    data_range = range(1,dataGrid.size+1)
-
-    cells = np.random.choice(data_range, 1, p=Distribution)
-    while cells[0] in S:
-        cells = np.random.choice(data_range, 1, p=Distribution)
+    cells = np.random.choice(range(1,dataGrid.size+1), 1, p=Distribution)
     C = cells[0]
-
 
     M[C-1] = dataGrid.data_at_loc(C)[:,1] #"taking a measurement"
     S.add(C)
@@ -173,7 +178,8 @@ while len(S) < NUMBER_OF_SAMPLES:
         mse = float(np.square(np.subtract(exp_data, true_data)).mean())
         l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
         l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))
-        data_log[i] = {'mse':mse,"l2":l2,"l1":l1}
+        if args.video:
+            data_log[i] = {'mse':mse,"l2":l2,"l1":l1}
 
         times = [get_time()] + times
         s = "Avg Sample Time: \n"
@@ -237,16 +243,16 @@ print("_________________")
 
 
 full_data = interpolateData(M,4,dataGrid)
-exp_data = clipSimilarityMatrix(getSimilarityMatrix(full_data,dataGrid))
+exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
+
+
+mse = float(np.square(np.subtract(exp_data, true_data)).mean())
+l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
+l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))
 
 print("Mean Squared Error: ")
-print(np.square(np.subtract(exp_data, true_data)).mean())
-print()
-
+print(str(mse) + "\n")
 print("L2 Distance: ")
-print(np.sum(np.square(np.subtract(exp_data, true_data))))
-print()
-
+print(str(l2) + "\n")
 print("L1 Distance: ")
-print(np.sum(np.abs(np.subtract(exp_data, true_data))))
-print()
+print(str(l1) + "\n")
