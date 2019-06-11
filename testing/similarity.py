@@ -161,14 +161,15 @@ plt.imshow(cluster_grid)
 plt.gca().invert_yaxis()
 plt.show()
 
-label = 0
+'''
+label = 5
 for i,l in enumerate(agg.labels_):
      if l == label:
          x = points[i][0]
          y = points[i][1]
          plt.plot(dataGrid.data_at(x,y)[:,1])
          plt.show()
-
+'''
 
 
 '''

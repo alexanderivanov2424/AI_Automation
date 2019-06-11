@@ -3,14 +3,12 @@
 
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
-from utils.utils import plotDataGrid,trim_outside_grid, interpolateData, similarity
-from utils.utils import getDissimilarityMatrix, clipSimilarityMatrix, dict_to_csv
-from matplotlib.backends.backend_agg import FigureCanvasAgg
+from utils.plotvis import PlotVisualizer
+from utils.utils import interpolateData, similarity
+
 
 from scipy.ndimage.filters import gaussian_filter
 
-import matplotlib.pyplot as plt
-import imageio
 import numpy as np
 import time
 
@@ -45,30 +43,21 @@ np.random.seed(seed)
 
 #set up DataGrid object
 dataGrid = DataGrid_TiNiSn_500C()
-true_data = clipSimilarityMatrix(getDissimilarityMatrix(dataGrid.get_data_array(),dataGrid))
+true_data = dataGrid.get_data_array()
 
 
-#set up array to store plots
-if args.video:
-    video = []
-    data_log = {}
-    file_name = "PSG-" + str(seed)
-
-#set up the visuals
 if args.video or args.graphics:
-    fig = plt.figure(num='Probabilistic Similarity Gradient')
-    ax = fig.subplots(nrows=2, ncols=3)
-    [[x.axis('off') for x in y] for y in ax]
-    [[x.set_ylim(-1,15) for x in y] for y in ax]
-    ax[0,0].title.set_text('Dissimilarity\nMatrix')
-    ax[0,1].title.set_text('Sampling\nProbability')
-    ax[0,2].title.set_text('Interpolated\nMeasurements')
-    ax[1,0].title.set_text('Measurements')
-    ax[1,2].title.set_text('True Data')
+    plotVisualizer = PlotVisualizer('Probabilistic Similarity Gradient',(2,3))
+    plotVisualizer.set_title(0,0,'Dissimilarity\nMatrix')
+    plotVisualizer.set_title(0,1,'Sampling\nProbability')
+    plotVisualizer.set_title(0,2,'Interpolated\nMeasurements')
+    plotVisualizer.set_title(1,0,'Measurements')
+    plotVisualizer.set_title(1,2,'True Data')
+    plotVisualizer.plot_measurement(true_data,dataGrid,1,2)
+    #plotVisualizer.start()
 
-    fig.tight_layout()
-    ax[1,2].imshow(trim_outside_grid(true_data,dataGrid))
-    text = ax[1,1].text(0, 0, "", fontsize=10)
+if args.video:
+    plotVisualizer.with_save("PSG-" + str(seed))
 
 #initialize variables
 exp_data = np.zeros(true_data.shape) #experimental data
@@ -131,9 +120,8 @@ def get_time():
 # START
 
 # MAIN LOOP
-i = 0
+
 while len(S) < NUMBER_OF_SAMPLES:
-    i += 1
     start_time()
     # Create Probability Distribution
     blurred = blur(np.power(G,power))
@@ -150,19 +138,23 @@ while len(S) < NUMBER_OF_SAMPLES:
     stop_time()
     # Plotting
     if args.video or args.graphics:
-        plotDataGrid(ax[0,0],np.power(G,power),dataGrid)
-        plotDataGrid(ax[0,1],G_norm,dataGrid)
-        ax[0,2].imshow(trim_outside_grid(exp_data,dataGrid))
+        #plot grids
+        plotVisualizer.plot_grid(np.power(G,power),dataGrid,0,0)
+        plotVisualizer.plot_grid(G_norm,dataGrid,0,1)
+        plotVisualizer.plot_measurement(exp_data,dataGrid,0,2)
 
-        measured_points = np.full(dataGrid.dims,.1)
+        #plot locations sampled so far
+        measured_points = np.zeros(dataGrid.dims)
         for s in S:
             x,y = dataGrid.coord(s)
             measured_points[x-1,y-1] = 1
-        ax[1,0].imshow(measured_points)
+        plotVisualizer.plot_grid(measured_points,dataGrid,1,0)
 
+        #plot current and next measurement
         next_x,next_y = dataGrid.coord(C)
-        sct_next = ax[0,1].scatter(next_y-1,next_x-1,s=15,c='red')
-        sct_old = ax[0,1].scatter(old_y-1,old_x-1,s=15,c='purple')
+        plotVisualizer.point(0,1,next_y-1,next_x-1,s=15,color='red')
+        plotVisualizer.point(0,1,old_y-1,old_x-1,s=15,color='purple')
+
     start_time()
 
     #Take a measurement at C
@@ -182,46 +174,27 @@ while len(S) < NUMBER_OF_SAMPLES:
 
     stop_time()
 
+    #update time list
+    times = [get_time()] + times
+
     #Additional Plotting
     if args.video or args.graphics:
-        mse = float(np.square(np.subtract(exp_data, true_data)).mean())
-        l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
-        l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))
-        if args.video:
-            data_log[i] = {'mse':mse,"l2":l2,"l1":l1}
-
-        times = [get_time()] + times
-        s = "Avg Sample Time: \n"
-        s += str(float(sum(times)/len(times))) + "\n"
-        s += "Mean Squared Error: \n"
-        s += str(mse) + "\n"
-        s += "L2 Distance: \n"
-        s += str(l2) + "\n"
-        s += "L1 Distance: \n"
-        s+= str(l1) + "\n"
-        text.set_text(s)
+        plotVisualizer.plot_text(times,true_data,exp_data,1,1)
 
     #plotting graphics to screen
     if args.graphics:
-        plt.draw()
-        plt.pause(args.delay)
+        plotVisualizer.show(args.delay)
 
     #saving frame to video
     if args.video:
-        fig.canvas.draw()
-        frame = np.fromstring(fig.canvas.tostring_rgb(), dtype='uint8')
-        w,h = fig.canvas.get_width_height()
-        frame = np.reshape(frame,(h,w,3))
-        video.append(frame)
+        plotVisualizer.save_frame()
 
 
-    full_data = interpolateData(M,4,dataGrid)
-    exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
+    exp_data = interpolateData(M,4,dataGrid)
 
     #resetting scatter plot and points
     if args.video or args.graphics:
-        sct_next.remove()
-        sct_old.remove()
+        plotVisualizer.reset_axis(0,1)
         old_x = next_x
         old_y = next_y
 
@@ -234,25 +207,18 @@ while len(S) < NUMBER_OF_SAMPLES:
 #save video as file_name
 if args.video:
     video_path = "/home/sasha/Desktop/python/videos/"
-    imageio.mimwrite(video_path + file_name + ".mp4", video, fps=2)
     data_path = "/home/sasha/Desktop/python/logs/"
-    dict_to_csv(data_log,data_path,file_name)
+    plotVisualizer.save_to_paths(video_path,data_path)
     print("Video saved to " + video_path)
     print("Data log save to " + data_path)
 
-
-#leave plot open
-if args.graphics:
-    plt.show()
 
 print()
 print("Finished Sampling")
 print("_________________")
 
 
-full_data = interpolateData(M,4,dataGrid)
-exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
-
+exp_data = interpolateData(M,4,dataGrid)
 
 mse = float(np.square(np.subtract(exp_data, true_data)).mean())
 l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
@@ -264,3 +230,7 @@ print("L2 Distance: ")
 print(str(l2) + "\n")
 print("L1 Distance: ")
 print(str(l1) + "\n")
+
+#leave plot open
+if args.graphics:
+    plotVisualizer.show_plot()
