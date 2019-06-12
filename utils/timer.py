@@ -9,17 +9,14 @@ class Timer:
         self.total_timer = 0.
         self.timer = time.time()
 
-    def start_time():
-        global timer
-        timer = time.time()
+    def start(self):
+        self.timer = time.time()
 
-    def stop_time():
-        global total_timer, timer
-        total_timer += time.time() - timer
-        timer = time.time()
+    def stop(self):
+        self.total_timer += time.time() - self.timer
+        self.timer = time.time()
 
-    def get_time():
-        global total_timer
-        t = total_timer
-        total_timer = 0
-        return t
+    def get_time(self):
+        t = self.total_timer
+        self.total_timer = 0
+        return self.t
