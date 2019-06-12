@@ -4,13 +4,13 @@
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
 from utils.plotvis import PlotVisualizer
+from utils.timer import Timer
 from utils.utils import interpolateData, similarity
 
 
 from scipy.ndimage.filters import gaussian_filter
 
 import numpy as np
-import time
 
 
 import argparse
@@ -96,23 +96,7 @@ def blur(G):
 
 #Setting up Timer and time record
 times = []
-total_timer = 0.
-timer = time.time()
-
-def start_time():
-    global timer
-    timer = time.time()
-
-def stop_time():
-    global total_timer, timer
-    total_timer += time.time() - timer
-    timer = time.time()
-
-def get_time():
-    global total_timer
-    t = total_timer
-    total_timer = 0
-    return t
+time = Timer()
 
 
 
@@ -122,7 +106,7 @@ def get_time():
 # MAIN LOOP
 
 while len(S) < NUMBER_OF_SAMPLES:
-    start_time()
+    time.start()
     # Create Probability Distribution
     blurred = blur(np.power(G,power))
     G_norm = blurred / np.sum(blurred)
@@ -135,7 +119,7 @@ while len(S) < NUMBER_OF_SAMPLES:
     C = cells[0]
 
 
-    stop_time()
+    time.stop()
     # Plotting
     if args.video or args.graphics:
         #plot grids
@@ -155,7 +139,7 @@ while len(S) < NUMBER_OF_SAMPLES:
         plotVisualizer.point(0,1,next_y-1,next_x-1,s=15,color='red')
         plotVisualizer.point(0,1,old_y-1,old_x-1,s=15,color='purple')
 
-    start_time()
+    time.start()
 
     #Take a measurement at C
     M[C-1] = dataGrid.data_at_loc(C)[:,1]
@@ -172,10 +156,10 @@ while len(S) < NUMBER_OF_SAMPLES:
     G[C-1] = max(sim_list)
 
 
-    stop_time()
+    time.stop()
 
     #update time list
-    times = [get_time()] + times
+    times = time.list()
 
     #Additional Plotting
     if args.video or args.graphics:

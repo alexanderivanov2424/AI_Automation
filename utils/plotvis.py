@@ -91,7 +91,10 @@ class PlotVisualizer:
     def plot_text(self,times,true_data,exp_data,r,c):
         if self.text[r][c] == None:
             self.text[r][c] = self.ax[r,c].text(0, 0, "", fontsize=10)
-        avg_time = float(sum(times)/len(times))
+        if len(times) == 0 :
+            avg_time = 0
+        else:
+            avg_time = float(sum(times)/len(times))
         mse = float(np.square(np.subtract(exp_data, true_data)).mean())
         l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
         l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))

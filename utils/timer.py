@@ -19,4 +19,8 @@ class Timer:
     def get_time(self):
         t = self.total_timer
         self.total_timer = 0
+        self.times = [t] + self.times
         return self.t
+
+    def list(self):
+        return self.times
