@@ -49,7 +49,6 @@ class PlotVisualizer:
         self.video = []
         self.data_log = {}
         self.file_name = file_name
-
         self.step = 0
 
     def save_frame(self):

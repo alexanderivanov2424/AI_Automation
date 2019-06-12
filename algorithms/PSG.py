@@ -199,10 +199,8 @@ while len(S) < NUMBER_OF_SAMPLES:
         old_y = next_y
 
 
-
 # END
 #__________________________________________________
-
 
 #save video as file_name
 if args.video:
