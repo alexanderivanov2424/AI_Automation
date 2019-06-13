@@ -14,7 +14,7 @@ class CosineSimilarity:
         return np.dot(V1,V2)/np.linalg.norm(V1)/np.linalg.norm(V2)
 
 class PeakSimilarity:
-    def similarity(self,V1,V2):
+    def similarity(self,A,B):
         pA, _ = find_peaks(A)
         pB, _ = find_peaks(B)
         p = np.append(pA,pB,axis=0)

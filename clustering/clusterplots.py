@@ -16,8 +16,8 @@ import math
 
 dataGrid = DataGrid_TiNiSn_500C()
 
-
 '''
+
 for k in dataGrid.data.keys():
     x = dataGrid.data[k][:,1]
     plt.plot(x)
@@ -26,16 +26,24 @@ for k in dataGrid.data.keys():
     plt.show()
 
 
-x = dataGrid.data[73][:,1]
+x = dataGrid.data[32][:,1]
 plt.plot(x)
 peaks,_ = find_peaks(x)
 plt.plot(peaks,x[peaks], "x")
-x = dataGrid.data[29][:,1]
+x = dataGrid.data[34][:,1]
 plt.plot(x)
 peaks,_ = find_peaks(x)
 plt.plot(peaks,x[peaks], "x")
 plt.show()
+
 '''
+
+plt.plot(dataGrid.data[32][:,1])
+plt.plot(dataGrid.data[34][:,1])
+plt.show()
+
+
+#print(similarity(32,34))
 
 def similarity_vector(A,B):
     pA, _ = find_peaks(A)
@@ -43,7 +51,7 @@ def similarity_vector(A,B):
     p = np.append(pA,pB,axis=0)
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
     peaks = np.dot(A[p],B[p])/np.linalg.norm(A[p])/np.linalg.norm(B[p])
-    return cosine
+    return peaks
 
 #cosine similarity function using two grid positions
 def similarity(d1,d2):
@@ -138,6 +146,7 @@ plt.imshow(grid)
 #plt.gca().invert_xaxis()
 plt.gca().invert_yaxis()
 
+
 plt.plot(l1x,l1y,color="red")
 plt.plot(l2x,l2y,color="red")
 plt.plot(l3x,l3y,color="red")
@@ -230,8 +239,8 @@ def get_cluster_grids(i):
     return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc, agg.labels_
 
 
-min = 10
-max = 15
+min = 4
+max = 8
 cluster_range = range(min,max+1)
 
 
