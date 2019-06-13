@@ -1,9 +1,12 @@
 
 from data_loading.data_grid import DataGrid
 
+from scipy.interpolate import griddata
+
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+import sys
 
 
 def plotDataGrid(ax,sim_array,dataGrid):
@@ -14,38 +17,85 @@ def plotDataGrid(ax,sim_array,dataGrid):
     ax.imshow(trim_outside_grid(grid,dataGrid))
 
 #Note empty data starts with a zero reading
-def interpolateData(measurement_array,count,dataGrid):
+def interpolateDataCubic(measurement_array,dataGrid):
     full_data = measurement_array.copy()
 
-    no_data = np.zeros(shape=len(measurement_array))
-    for i,x in enumerate(measurement_array):
-        if x[0] == 0.:
-            no_data[i] = 1
+    dims = dataGrid.dims
+    grid_x,grid_y = np.mgrid[0:dims[0],0:dims[1]]
 
-    searched = set() #indexed at 1
-    cur = set() #indexed at 1
-    avg = set() # indexed at 0
-    for i,x in enumerate(no_data):
-        if x == 1:
-            searched.clear()
-            cur.clear()
-            avg.clear()
-            cur.add(i+1)
-            while len(avg) < count:
-                next_cur = set()
-                for C in cur:
-                    for K in dataGrid.neighbors(C).values():
-                        if len(avg) >= count:
-                            break
-                        if not K in searched:
-                            next_cur.add(K)
-                            searched.add(K)
-                            if no_data[K-1] == 0:
-                                avg.add(K-1)
-                searched = searched.union(cur)
-                cur = next_cur
+    points = []
+    values = []
 
-            full_data[i] = np.mean(measurement_array[list(avg)],axis=0)
+    for i,val in enumerate(full_data):
+        if not val[0] == 0.:
+            x,y = dataGrid.coord(i+1)
+            points.append([x-1,y-1])
+            values.append(val)
+    values = np.array(values)
+    for i in range(dataGrid.data_length):
+        data = griddata(points, values[:,i], (grid_x, grid_y), method='cubic')
+        nearest = griddata(points, values[:,i], (grid_x, grid_y), method='nearest')
+        for j in range(len(full_data)):
+            x,y = dataGrid.coord(j+1)
+            v = data[x-1,y-1]
+            if v != v or v == np.NINF or v == np.inf:
+                v = nearest[x-1,y-1]
+            if v != v or v == np.NINF or v == np.inf:
+                v = 0
+            full_data[j,i] = v
+    return full_data
+
+def interpolateDataNearest(measurement_array,dataGrid):
+    full_data = measurement_array.copy()
+
+    dims = dataGrid.dims
+    grid_x,grid_y = np.mgrid[0:dims[0],0:dims[1]]
+
+    points = []
+    values = []
+
+    for i,val in enumerate(full_data):
+        if not val[0] == 0.:
+            x,y = dataGrid.coord(i+1)
+            points.append([x-1,y-1])
+            values.append(val)
+    values = np.array(values)
+    
+    for i in range(dataGrid.data_length):
+        data = griddata(points, values[:,i], (grid_x, grid_y), method='nearest')
+        for j in range(len(full_data)):
+            x,y = dataGrid.coord(j+1)
+            v = data[x-1,y-1]
+            if v != v or v == np.NINF or v == np.inf:
+                v = 0
+            full_data[j,i] = v
+    return full_data
+
+def interpolateDataLinear(measurement_array,dataGrid):
+    full_data = measurement_array.copy()
+
+    dims = dataGrid.dims
+    grid_x,grid_y = np.mgrid[0:dims[0],0:dims[1]]
+    points = []
+    values = []
+    for i,val in enumerate(full_data):
+        if not val[0] == 0.:
+            x,y = dataGrid.coord(i+1)
+            points.append([x-1,y-1])
+            values.append(val)
+    values = np.array(values)
+
+    for i in range(dataGrid.data_length):
+        data = griddata(points, values[:,i], (grid_x, grid_y), method='linear')
+        nearest = griddata(points, values[:,i], (grid_x, grid_y), method='nearest')
+        for j in range(len(full_data)):
+            x,y = dataGrid.coord(j+1)
+            v = data[x-1,y-1]
+            if v != v or v == np.NINF or v == np.inf:
+                v = nearest[x-1,y-1]
+            if v != v or v == np.NINF or v == np.inf:
+                v = 0
+            full_data[j,i] = v
     return full_data
 
 def interpolateDataAvg(measurement_array):

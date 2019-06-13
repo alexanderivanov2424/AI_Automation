@@ -20,7 +20,7 @@ class Timer:
         t = self.total_timer
         self.total_timer = 0
         self.times = [t] + self.times
-        return self.t
+        return t
 
     def list(self):
         return self.times

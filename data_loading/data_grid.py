@@ -26,6 +26,7 @@ class DataGrid:
         self.data_length = len(self.data[list(self.data.keys())[0]])
         self.dims = (15,15)
 
+
         self.row_sums = [5, 14, 25, 38, 51, 66, 81, 96, 111, 126, 139, 152, 163, 172, 177]
         self.row_starts = [1] + [x + 1 for x in self.row_sums[:-1]]
         self.row_lengths = [5,9,11,13,13,15,15,15,15,15,13,13,11,9,5]

@@ -6,7 +6,7 @@ from algorithms.similarity_metrics.similarity import getSimilarityClass
 
 from utils.plotvis import PlotVisualizer
 from utils.timer import Timer
-from utils.utils import interpolateData,interpolateDataAvg
+from utils.utils import interpolateDataCubic,interpolateDataAvg
 
 
 from scipy.ndimage.filters import gaussian_filter
@@ -48,7 +48,7 @@ dataGrid = DataGrid_TiNiSn_500C()
 
 #initialize variables
 true_data = dataGrid.get_data_array() #true data set
-exp_data = np.zeros(true_data.shape) #experimental data
+exp_data = np.empty(true_data.shape) #experimental data
 old_x = 1
 old_y = 1
 
@@ -160,8 +160,11 @@ while len(S) < NUMBER_OF_SAMPLES:
 
 
     time.stop()
-    #Additional Plotting
 
+    exp_data = interpolateDataCubic(M,dataGrid)
+
+    time.get_time()
+    #Additional Plotting
     if args.video or args.graphics:
         plotVisualizer.plot_text(time.list(),true_data,exp_data,1,1)
     #plotting graphics to screen
@@ -171,7 +174,7 @@ while len(S) < NUMBER_OF_SAMPLES:
     if args.video:
         plotVisualizer.save_frame()
 
-    exp_data = interpolateDataAvg(M)
+
 
     #resetting scatter plot and points
     if args.video or args.graphics:
@@ -197,7 +200,7 @@ print("Finished Sampling")
 print("_________________")
 
 
-exp_data = interpolateData(M,4,dataGrid)
+exp_data = interpolateData(M,dataGrid)
 
 mse = float(np.square(np.subtract(exp_data, true_data)).mean())
 l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
