@@ -2,10 +2,11 @@
 
 
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
+from algorithms.similarity_metrics.similarity import getSimilarityClass
 
 from utils.plotvis import PlotVisualizer
 from utils.timer import Timer
-from utils.utils import interpolateData, similarity
+from utils.utils import interpolateData,interpolateDataAvg
 
 
 from scipy.ndimage.filters import gaussian_filter
@@ -43,7 +44,13 @@ np.random.seed(seed)
 
 #set up DataGrid object
 dataGrid = DataGrid_TiNiSn_500C()
-true_data = dataGrid.get_data_array()
+
+
+#initialize variables
+true_data = dataGrid.get_data_array() #true data set
+exp_data = np.zeros(true_data.shape) #experimental data
+old_x = 1
+old_y = 1
 
 
 if args.video or args.graphics:
@@ -59,11 +66,6 @@ if args.video or args.graphics:
 if args.video:
     plotVisualizer.with_save("PSG-" + str(seed))
 
-#initialize variables
-exp_data = np.zeros(true_data.shape) #experimental data
-old_x = 1
-old_y = 1
-
 
 #CONSTANTS
 k = args.G_init
@@ -76,10 +78,11 @@ M = np.empty(shape=(dataGrid.size,dataGrid.data_length))
 G = np.full(shape=dataGrid.size,fill_value = k)
 S = set()
 
+similarity_metric = getSimilarityClass('cosine')
 
 #cosine similarity function using two grid positions
 def get_similarity(d1,d2):
-    return similarity(M[d1],M[d2])
+    return similarity_metric.similarity(M[d1],M[d2])
 
 #define blur function to be used on flattened arrays
 def blur(G):
@@ -157,24 +160,18 @@ while len(S) < NUMBER_OF_SAMPLES:
 
 
     time.stop()
-
-    #update time list
-    times = time.list()
-
     #Additional Plotting
-    if args.video or args.graphics:
-        plotVisualizer.plot_text(times,true_data,exp_data,1,1)
 
+    if args.video or args.graphics:
+        plotVisualizer.plot_text(time.list(),true_data,exp_data,1,1)
     #plotting graphics to screen
     if args.graphics:
         plotVisualizer.show(args.delay)
-
     #saving frame to video
     if args.video:
         plotVisualizer.save_frame()
 
-
-    exp_data = interpolateData(M,4,dataGrid)
+    exp_data = interpolateDataAvg(M)
 
     #resetting scatter plot and points
     if args.video or args.graphics:

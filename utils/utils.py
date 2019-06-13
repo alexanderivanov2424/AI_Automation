@@ -15,8 +15,6 @@ def plotDataGrid(ax,sim_array,dataGrid):
 
 #Note empty data starts with a zero reading
 def interpolateData(measurement_array,count,dataGrid):
-
-
     full_data = measurement_array.copy()
 
     no_data = np.zeros(shape=len(measurement_array))
