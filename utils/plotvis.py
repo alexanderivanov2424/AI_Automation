@@ -84,8 +84,9 @@ class PlotVisualizer:
         self.ax[r,c].imshow(G)
 
 
-    def plot_measurement(self,measurements,data_grid,r,c):
-        self.ax[r,c].imshow(trim_outside_grid(getDissimilarityMatrix(measurements,data_grid),data_grid))
+    def plot_measurement(self,measurements,metric,data_grid,r,c):
+        dis_matrix = getDissimilarityMatrix(measurements,metric,data_grid)
+        self.ax[r,c].imshow(trim_outside_grid(dis_matrix,data_grid))
 
 
     def plot_text(self,times,true_data,exp_data,r,c):

@@ -60,7 +60,7 @@ def interpolateDataNearest(measurement_array,dataGrid):
             points.append([x-1,y-1])
             values.append(val)
     values = np.array(values)
-    
+
     for i in range(dataGrid.data_length):
         data = griddata(points, values[:,i], (grid_x, grid_y), method='nearest')
         for j in range(len(full_data)):
@@ -106,28 +106,19 @@ def interpolateDataAvg(measurement_array):
             full_data[i] = avg
     return full_data
 
-def similarity(V1,V2):
-    return np.dot(V1,V2)/np.linalg.norm(V1)/np.linalg.norm(V2)
-
-def getDissimilarityMatrix(measurement_array,dataGrid,keys = ['up', 'left', 'right', 'down']):
-    #create grid
+def getDissimilarityMatrix(M, metric, dataGrid, keys = ['up', 'left', 'right', 'down']):
     grid = np.zeros(shape=dataGrid.dims)
 
     #calculate similarity values for grid
-    for i,val in enumerate(measurement_array):
+    for i,val in enumerate(M):
         x,y = dataGrid.coord(i+1)
         neigh = [dataGrid.neighbors(i+1)[k] for k in dataGrid.neighbors(i+1).keys() if k in keys]
-        sim_values = [similarity(val,measurement_array[x-1]) for x in neigh]
-        if len(sim_values) == 0:
+        sims = [metric.similarity(val,M[x-1]) for x in neigh]
+        if len(sims) == 0:
             grid[x-1][y-1] = 1
             continue
-        grid[x-1][y-1] = 1 - np.amin(sim_values)
+        grid[x-1][y-1] = 1 - np.amin(sims)
     return grid
-
-def clipSimilarityMatrix(data):
-    min = np.min(data.ravel()[np.nonzero(data.ravel())])
-    min_array = np.full(data.shape,min)
-    return np.clip(data - min_array,0,1)
 
 def trim_outside_grid(data,dataGrid):
     arr = data.copy()

@@ -45,6 +45,8 @@ np.random.seed(seed)
 #set up DataGrid object
 dataGrid = DataGrid_TiNiSn_500C()
 
+#set up Similarity Metric object
+similarity_metric = getSimilarityClass('cosine')
 
 #initialize variables
 true_data = dataGrid.get_data_array() #true data set
@@ -60,7 +62,7 @@ if args.video or args.graphics:
     plotVisualizer.set_title(0,2,'Interpolated\nMeasurements')
     plotVisualizer.set_title(1,0,'Measurements')
     plotVisualizer.set_title(1,2,'True Data')
-    plotVisualizer.plot_measurement(true_data,dataGrid,1,2)
+    plotVisualizer.plot_measurement(true_data,similarity_metric,dataGrid,1,2)
     #plotVisualizer.start()
 
 if args.video:
@@ -78,7 +80,6 @@ M = np.empty(shape=(dataGrid.size,dataGrid.data_length))
 G = np.full(shape=dataGrid.size,fill_value = k)
 S = set()
 
-similarity_metric = getSimilarityClass('cosine')
 
 #cosine similarity function using two grid positions
 def get_similarity(d1,d2):
@@ -128,13 +129,12 @@ while len(S) < NUMBER_OF_SAMPLES:
         #plot grids
         plotVisualizer.plot_grid(np.power(G,power),dataGrid,0,0)
         plotVisualizer.plot_grid(G_norm,dataGrid,0,1)
-        plotVisualizer.plot_measurement(exp_data,dataGrid,0,2)
+        plotVisualizer.plot_measurement(exp_data,similarity_metric,dataGrid,0,2)
 
         #plot locations sampled so far
         measured_points = np.zeros(dataGrid.dims)
         for s in S:
-            x,y = dataGrid.coord(s)
-            measured_points[x-1,y-1] = 1
+            measured_points[tuple(x-y for x, y in zip(dataGrid.coord(s), (1,1)))] = 1
         plotVisualizer.plot_grid(measured_points,dataGrid,1,0)
 
         #plot current and next measurement
@@ -173,8 +173,6 @@ while len(S) < NUMBER_OF_SAMPLES:
     #saving frame to video
     if args.video:
         plotVisualizer.save_frame()
-
-
 
     #resetting scatter plot and points
     if args.video or args.graphics:
