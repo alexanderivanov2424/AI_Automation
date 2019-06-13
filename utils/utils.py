@@ -8,14 +8,6 @@ import numpy as np
 import csv
 import sys
 
-
-def plotDataGrid(ax,sim_array,dataGrid):
-    grid = np.zeros(shape=dataGrid.dims)
-    for i,v in enumerate(sim_array):
-        x,y = dataGrid.coord(i+1)
-        grid[x-1][y-1] = v
-    ax.imshow(trim_outside_grid(grid,dataGrid))
-
 #Note empty data starts with a zero reading
 def interpolateDataCubic(measurement_array,dataGrid):
     full_data = measurement_array.copy()
