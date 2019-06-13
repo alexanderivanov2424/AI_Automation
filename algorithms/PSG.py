@@ -55,13 +55,13 @@ old_y = 1
 
 
 if args.video or args.graphics:
-    plotVisualizer = PlotVisualizer('Probabilistic Similarity Gradient',(2,3))
+    plotVisualizer = PlotVisualizer('Probabilistic Similarity Gradient',(2,3),dataGrid)
     plotVisualizer.set_title(0,0,'Dissimilarity\nMatrix')
     plotVisualizer.set_title(0,1,'Sampling\nProbability')
     plotVisualizer.set_title(0,2,'Interpolated\nMeasurements')
     plotVisualizer.set_title(1,0,'Measurements')
     plotVisualizer.set_title(1,2,'True Data')
-    plotVisualizer.plot_measurement(true_data,similarity_metric,dataGrid,1,2)
+    plotVisualizer.plot_measurement(true_data,similarity_metric,1,2)
 
 if args.video:
     plotVisualizer.with_save("PSG-" + str(seed))
@@ -124,15 +124,15 @@ while len(S) < NUMBER_OF_SAMPLES:
     # Plotting
     if args.video or args.graphics:
         #plot grids
-        plotVisualizer.plot_grid(np.power(G,power),dataGrid,0,0)
-        plotVisualizer.plot_grid(G_norm,dataGrid,0,1)
-        plotVisualizer.plot_measurement(exp_data,similarity_metric,dataGrid,0,2)
+        plotVisualizer.plot_grid(np.power(G,power),0,0)
+        plotVisualizer.plot_grid(G_norm,0,1)
+        plotVisualizer.plot_measurement(exp_data,similarity_metric,0,2)
 
         #plot locations sampled so far
         measured_points = np.zeros(dataGrid.dims)
         for s in S:
             measured_points[tuple(x-y for x, y in zip(dataGrid.coord(s), (1,1)))] = 1
-        plotVisualizer.plot_grid(measured_points,dataGrid,1,0)
+        plotVisualizer.plot_grid(measured_points,1,0)
 
         #plot current and next measurement
         next_x,next_y = dataGrid.coord(C)

@@ -13,9 +13,10 @@ import numpy as np
 
 class PlotVisualizer:
 
-    def __init__(self, name, dims, titles=None):
+    def __init__(self, name, dims, dataGrid, titles=None):
 
         self.dims = dims
+        self.dataGrid = dataGrid
         self.fig = plt.figure(num=name)
         self.ax = self.fig.subplots(nrows=dims[0], ncols=dims[1])
 
@@ -72,21 +73,21 @@ class PlotVisualizer:
         plt.pause(delay)
 
 
-    def plot_grid(self,grid,data_grid,r,c):
+    def plot_grid(self,grid,r,c):
         if len(grid.shape) == 1:
-            G = np.zeros(shape=data_grid.dims)
+            G = np.zeros(shape=self.dataGrid.dims)
             for i,v in enumerate(grid):
-                x,y = data_grid.coord(i+1)
+                x,y = self.dataGrid.coord(i+1)
                 G[x-1][y-1] = v
-            G = trim_outside_grid(G,data_grid)
+            G = trim_outside_grid(G,self.dataGrid)
         else:
-            G = trim_outside_grid(grid,data_grid)
+            G = trim_outside_grid(grid,self.dataGrid)
         self.ax[r,c].imshow(G)
 
 
-    def plot_measurement(self,measurements,metric,data_grid,r,c):
-        dis_matrix = getDissimilarityMatrix(measurements,metric,data_grid)
-        self.ax[r,c].imshow(trim_outside_grid(dis_matrix,data_grid))
+    def plot_measurement(self,measurements,metric,r,c):
+        dis_matrix = getDissimilarityMatrix(measurements,metric,self.dataGrid)
+        self.ax[r,c].imshow(trim_outside_grid(dis_matrix,self.dataGrid))
 
 
     def plot_text(self,times,true_data,exp_data,r,c):

@@ -54,13 +54,13 @@ old_y = 1
 
 #set up the visuals
 if args.video or args.graphics:
-    plotVisualizer = PlotVisualizer('Similarity from Measurement Averages',(2,3))
+    plotVisualizer = PlotVisualizer('Similarity from Measurement Averages',(2,3), dataGrid)
     plotVisualizer.set_title(0,0,'Measurement Removed\nDis-Matrix')
     plotVisualizer.set_title(0,1,'Sampling\nProbability')
     plotVisualizer.set_title(0,2,'Interpolated\nMeasurements')
     plotVisualizer.set_title(1,0,'Measurements')
     plotVisualizer.set_title(1,2,'True Data')
-    plotVisualizer.plot_measurement(true_data,similarity_metric,dataGrid,1,2)
+    plotVisualizer.plot_measurement(true_data,similarity_metric,1,2)
 
 if args.video:
     plotVisualizer.with_save("SMA-" + str(seed))
@@ -101,9 +101,8 @@ for C in C_list:
     S.add(C)
 
 #Main Loop
-i = 0
+
 while len(S) < NUMBER_OF_SAMPLES:
-    i += 1
     time.start()
     exp_data = interpolateDataCubic(M,dataGrid)
     dissim = getDissimilarityMatrix(exp_data,similarity_metric,dataGrid)
@@ -130,15 +129,15 @@ while len(S) < NUMBER_OF_SAMPLES:
     #Plotting
     if args.video or args.graphics:
         #plot grids
-        plotVisualizer.plot_grid(dissim_removed,dataGrid,0,0)
-        plotVisualizer.plot_grid(blurred,dataGrid,0,1)
-        plotVisualizer.plot_grid(dissim,dataGrid,0,2)
+        plotVisualizer.plot_grid(dissim_removed,0,0)
+        plotVisualizer.plot_grid(blurred,0,1)
+        plotVisualizer.plot_grid(dissim,0,2)
 
         #plot locations sampled so far
         measured_points = np.zeros(dataGrid.dims)
         for s in S:
             measured_points[tuple(x-y for x, y in zip(dataGrid.coord(s), (1,1)))] = 1
-        plotVisualizer.plot_grid(measured_points,dataGrid,1,0)
+        plotVisualizer.plot_grid(measured_points,1,0)
 
         #plot current and next measurement
         next_x,next_y = dataGrid.coord(C)
@@ -165,8 +164,6 @@ while len(S) < NUMBER_OF_SAMPLES:
     #saving frame to video
     if args.video:
         plotVisualizer.save_frame()
-
-    exp_data = interpolateDataCubic(M,dataGrid)
 
     #resetting scatter plot and points
     if args.video or args.graphics:
