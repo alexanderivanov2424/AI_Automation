@@ -8,7 +8,6 @@ from utils.plotvis import PlotVisualizer
 from utils.timer import Timer
 from utils.utils import interpolateDataCubic,interpolateDataAvg
 
-
 from scipy.ndimage.filters import gaussian_filter
 
 import numpy as np
@@ -63,7 +62,6 @@ if args.video or args.graphics:
     plotVisualizer.set_title(1,0,'Measurements')
     plotVisualizer.set_title(1,2,'True Data')
     plotVisualizer.plot_measurement(true_data,similarity_metric,dataGrid,1,2)
-    #plotVisualizer.start()
 
 if args.video:
     plotVisualizer.with_save("PSG-" + str(seed))
@@ -76,7 +74,7 @@ blur_const = args.blur
 NUMBER_OF_SAMPLES = args.N
 
 #DATA STRUCTURES
-M = np.empty(shape=(dataGrid.size,dataGrid.data_length))
+M = np.zeros(shape=(dataGrid.size,dataGrid.data_length))
 G = np.full(shape=dataGrid.size,fill_value = k)
 S = set()
 
@@ -99,7 +97,6 @@ def blur(G):
     return final
 
 #Setting up Timer and time record
-times = []
 time = Timer()
 
 
@@ -160,11 +157,9 @@ while len(S) < NUMBER_OF_SAMPLES:
 
 
     time.stop()
-
     exp_data = interpolateDataCubic(M,dataGrid)
-
     time.get_time()
-    #Additional Plotting
+
     if args.video or args.graphics:
         plotVisualizer.plot_text(time.list(),true_data,exp_data,1,1)
     #plotting graphics to screen
@@ -198,7 +193,7 @@ print("Finished Sampling")
 print("_________________")
 
 
-exp_data = interpolateData(M,dataGrid)
+exp_data = interpolateDataCubic(M,dataGrid)
 
 mse = float(np.square(np.subtract(exp_data, true_data)).mean())
 l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))

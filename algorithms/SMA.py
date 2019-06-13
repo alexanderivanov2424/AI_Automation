@@ -1,24 +1,27 @@
-#Similarity from measurement Avereges
+#Similarity from measurement Averages
 
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
+from algorithms.similarity_metrics.similarity import getSimilarityClass
 
-from utils.utils import trim_outside_grid, interpolateData, similarity, interpolateDataAvg
-from utils.utils import getDissimilarityMatrix, clipSimilarityMatrix, dict_to_csv
+
+
+from utils.plotvis import PlotVisualizer
+from utils.timer import Timer
+from utils.utils import interpolateDataCubic,interpolateDataAvg, getDissimilarityMatrix
 
 from scipy.ndimage.filters import gaussian_filter
 
-import matplotlib.pyplot as plt
-import imageio
 import numpy as np
-import time
 
 import argparse
 
 parser = argparse.ArgumentParser(description='Run Probabilistic Similarity Gradient Simulation')
 parser.add_argument('-s','--seed', type=int, default=0,
                     help='seed algorithm')
-parser.add_argument('-b','--blur', type=int, default=4,
+parser.add_argument('-b','--blur', type=int, default=2,
                     help='sigma value for gaussian blur')
+parser.add_argument('-p','--power', type=int, default=20,
+                    help='y=x^p scale for probability')
 parser.add_argument('-N', type=int, default=50,
                     help='number of samples')
 parser.add_argument('-v','--video', action='store_true',
@@ -38,56 +41,43 @@ np.random.seed(seed)
 
 #set up DataGrid object
 dataGrid = DataGrid_TiNiSn_500C()
-true_data = clipSimilarityMatrix(getDissimilarityMatrix(dataGrid.get_data_array(),dataGrid))
 
-
-
-#set up array to store plots
-if args.video:
-    video = []
-    data_log = {}
-    file_name = "SMA-" + str(seed)
-
-#set up the visuals
-if args.video or args.graphics:
-    fig = plt.figure()
-    ax = fig.subplots(nrows=2, ncols=3)
-    [[x.axis('off') for x in y] for y in ax]
-    [[x.set_ylim(-1,15) for x in y] for y in ax]
-    ax[0,0].title.set_text('Avg-Interpolated\nDis-Matrix')
-    ax[0,1].title.set_text('Sampling\nProbability')
-    ax[0,2].title.set_text('Interpolated\nMeasurements')
-    ax[1,0].title.set_text('Measurements')
-    ax[1,2].title.set_text('True Data')
-
-
-    fig.tight_layout()
-
-    ax[1,2].imshow(trim_outside_grid(true_data,dataGrid))
-    text = ax[1,1].text(0, 0, "", fontsize=10)
-
+#set up Similarity Metric object
+similarity_metric = getSimilarityClass('cosine')
 
 #initialize variables
-exp_data = np.zeros(true_data.shape)
+true_data = dataGrid.get_data_array() #true data set
+exp_data = np.empty(true_data.shape) #experimental data
 old_x = 1
 old_y = 1
 
 
+#set up the visuals
+if args.video or args.graphics:
+    plotVisualizer = PlotVisualizer('Similarity from Measurement Averages',(2,3))
+    plotVisualizer.set_title(0,0,'Measurement Removed\nDis-Matrix')
+    plotVisualizer.set_title(0,1,'Sampling\nProbability')
+    plotVisualizer.set_title(0,2,'Interpolated\nMeasurements')
+    plotVisualizer.set_title(1,0,'Measurements')
+    plotVisualizer.set_title(1,2,'True Data')
+    plotVisualizer.plot_measurement(true_data,similarity_metric,dataGrid,1,2)
+
+if args.video:
+    plotVisualizer.with_save("SMA-" + str(seed))
+
+
 #CONSTANTS
 blur_const = args.blur
+power_const = args.power
 NUMBER_OF_SAMPLES = args.N
 
 #DATA STRUCTURES
-M = np.empty(shape=(dataGrid.size,dataGrid.data_length))
+M = np.zeros(shape=(dataGrid.size,dataGrid.data_length))
 S = set()
 
 #cosine similarity function using two grid positions
 def get_similarity(d1,d2):
-    if np.linalg.norm(M[d1]) == 0.:
-        print(d1)
-    if np.linalg.norm(M[d2]) == 0.:
-        print(d2)
-    return similarity(M[d1],M[d2])
+    return similarity_metric.similarity(M[d1],M[d2])
 
 #Used to convert blurred similarity matrix to probability distribution
 def convertTo1D(G):
@@ -98,25 +88,7 @@ def convertTo1D(G):
     return ret
 
 #Setting up Timer and time record
-times = []
-total_timer = 0.
-timer = time.time()
-
-def start_time():
-    global timer
-    timer = time.time()
-
-def stop_time():
-    global total_timer, timer
-    total_timer += time.time() - timer
-    timer = time.time()
-
-def get_time():
-    global total_timer
-    t = total_timer
-    total_timer = 0
-    return t
-
+time = Timer()
 
 #__________________________________________________
 # START
@@ -128,38 +100,25 @@ for C in C_list:
     M[C-1] = dataGrid.data_at_loc(C)[:,1]
     S.add(C)
 
+#Main Loop
 i = 0
 while len(S) < NUMBER_OF_SAMPLES:
     i += 1
-    start_time()
+    time.start()
+    exp_data = interpolateDataCubic(M,dataGrid)
+    dissim = getDissimilarityMatrix(exp_data,similarity_metric,dataGrid)
 
-    dissim = getDissimilarityMatrix(interpolateDataAvg(M),dataGrid)
+    dissim_removed = dissim.copy()
     for s in S:
         x,y = dataGrid.coord(s)
-        dissim[x-1][y-1] = 0
-    blurred = gaussian_filter(dissim, sigma=blur_const)
+        dissim_removed[x-1][y-1] = 0
+    blurred = gaussian_filter(dissim_removed, sigma=blur_const)
+    blurred = np.power(blurred,power_const)
     flat = convertTo1D(blurred)
 
-    if  np.sum(flat) == 0:
-        Distribution = np.full(shape=(dataGrid.size),fill_value = 1/dataGrid.size)
-    else:
-        Distribution = flat / np.sum(flat)
 
-    stop_time()
-    #Plotting
-    if args.video or args.graphics:
-        ax[0,0].imshow(trim_outside_grid(dissim,dataGrid))
-        ax[0,1].imshow(trim_outside_grid(blurred,dataGrid))
-        ax[0,2].imshow(trim_outside_grid(exp_data,dataGrid))
+    Distribution = flat / np.sum(flat)
 
-        measured_points = np.zeros(dataGrid.dims)
-        for s in S:
-            x,y = dataGrid.coord(s)
-            measured_points[x-1,y-1] = 1
-        ax[1,0].imshow(measured_points)
-    start_time()
-
-    #Note: cells numbering starts at 1
     data_range = range(1,dataGrid.size+1)
 
     cells = np.random.choice(data_range, 1, p=Distribution)
@@ -167,56 +126,51 @@ while len(S) < NUMBER_OF_SAMPLES:
         cells = np.random.choice(data_range, 1, p=Distribution)
     C = cells[0]
 
+    time.stop()
+    #Plotting
+    if args.video or args.graphics:
+        #plot grids
+        plotVisualizer.plot_grid(dissim_removed,dataGrid,0,0)
+        plotVisualizer.plot_grid(blurred,dataGrid,0,1)
+        plotVisualizer.plot_grid(dissim,dataGrid,0,2)
+
+        #plot locations sampled so far
+        measured_points = np.zeros(dataGrid.dims)
+        for s in S:
+            measured_points[tuple(x-y for x, y in zip(dataGrid.coord(s), (1,1)))] = 1
+        plotVisualizer.plot_grid(measured_points,dataGrid,1,0)
+
+        #plot current and next measurement
+        next_x,next_y = dataGrid.coord(C)
+        plotVisualizer.point(0,1,next_y-1,next_x-1,s=15,color='red')
+        plotVisualizer.point(0,1,old_y-1,old_x-1,s=15,color='purple')
+
+    time.start()
+
+
+
 
     M[C-1] = dataGrid.data_at_loc(C)[:,1] #"taking a measurement"
     S.add(C)
 
-    stop_time()
-    #Additional Plotting
+    time.stop()
+    time.get_time()
+
     if args.video or args.graphics:
-        next_x,next_y = dataGrid.coord(C)
-        sct_next = ax[0,1].scatter(next_y-1,next_x-1,s=15,c='red')
-        sct_old = ax[0,1].scatter(old_y-1,old_x-1,s=15,c='purple')
-
-        mse = float(np.square(np.subtract(exp_data, true_data)).mean())
-        l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
-        l1 = float(np.sum(np.abs(np.subtract(exp_data, true_data))))
-        if args.video:
-            data_log[i] = {'mse':mse,"l2":l2,"l1":l1}
-
-        times = [get_time()] + times
-        s = "Avg Sample Time: \n"
-        s += str(float(sum(times)/len(times))) + "\n"
-        s += "Mean Squared Error: \n"
-        s += str(mse) + "\n"
-        s += "L2 Distance: \n"
-        s += str(l2) + "\n"
-        s += "L1 Distance: \n"
-        s+= str(l1) + "\n"
-        text.set_text(s)
-
+        plotVisualizer.plot_text(time.list(),true_data,exp_data,1,1)
 
     #plotting graphics to screen
     if args.graphics:
-        plt.draw()
-        plt.pause(args.delay)
-
+        plotVisualizer.show(args.delay)
     #saving frame to video
     if args.video:
-        fig.canvas.draw()
-        frame = np.fromstring(fig.canvas.tostring_rgb(), dtype='uint8')
-        w,h = fig.canvas.get_width_height()
-        frame = np.reshape(frame,(h,w,3))
-        video.append(frame)
+        plotVisualizer.save_frame()
 
-
-    full_data = interpolateData(M,4,dataGrid)
-    exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
+    exp_data = interpolateDataCubic(M,dataGrid)
 
     #resetting scatter plot and points
     if args.video or args.graphics:
-        sct_next.remove()
-        sct_old.remove()
+        plotVisualizer.reset_axis(0,1)
         old_x = next_x
         old_y = next_y
 
@@ -229,25 +183,17 @@ while len(S) < NUMBER_OF_SAMPLES:
 #save video as file_name
 if args.video:
     video_path = "/home/sasha/Desktop/python/videos/"
-    imageio.mimwrite(video_path + file_name + ".mp4", video, fps=2)
     data_path = "/home/sasha/Desktop/python/logs/"
-    dict_to_csv(data_log,data_path,file_name)
+    plotVisualizer.save_to_paths(video_path,data_path)
     print("Video saved to " + video_path)
     print("Data log save to " + data_path)
 
-
-#leave plot open
-if args.graphics:
-    plt.show()
 
 print()
 print("Finished Sampling")
 print("_________________")
 
-
-full_data = interpolateData(M,4,dataGrid)
-exp_data = clipSimilarityMatrix(getDissimilarityMatrix(full_data,dataGrid))
-
+exp_data = interpolateDataCubic(M,dataGrid)
 
 mse = float(np.square(np.subtract(exp_data, true_data)).mean())
 l2 = float(np.sum(np.square(np.subtract(exp_data, true_data))))
@@ -259,3 +205,7 @@ print("L2 Distance: ")
 print(str(l2) + "\n")
 print("L1 Distance: ")
 print(str(l1) + "\n")
+
+#leave plot open
+if args.graphics:
+    plotVisualizer.show_plot()

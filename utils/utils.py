@@ -92,7 +92,7 @@ def interpolateDataLinear(measurement_array,dataGrid):
 
 def interpolateDataAvg(measurement_array):
     full_data = measurement_array.copy()
-    avg = np.mean([x for x in full_data if not x[0] == 0.],axis=0)
+    avg = np.mean([x for x in full_data if np.any(x)],axis=0)
     for i,x in enumerate(full_data):
         if x[0] == 0.:
             full_data[i] = avg
