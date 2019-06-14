@@ -38,9 +38,9 @@ plt.show()
 
 '''
 
-plt.plot(np.log(dataGrid.data[33][:,1]))
-plt.plot(np.log(dataGrid.data[28][:,1]))
-plt.plot(np.log(dataGrid.data[18][:,1]))
+plt.plot(dataGrid.data[33][:,1])
+plt.plot(dataGrid.data[28][:,1])
+plt.plot(dataGrid.data[18][:,1])
 plt.show()
 
 

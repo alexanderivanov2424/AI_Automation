@@ -6,7 +6,7 @@ import re
 
 class DataGrid:
 
-    def __init__(self, path, regex):
+    def __init__(self, path, regex, range=None):
         files = os.listdir(path)
 
 
@@ -22,10 +22,26 @@ class DataGrid:
             num = int(match.group("num"))
             self.data[num] = np.array(pd.read_csv(path + file,header=None))
 
+        #set of key locations
+        self.grid_locations = list(self.data.keys())
+        #number of grid locations
         self.size = len(self.data.keys())
+        #length of each spectra vector
         self.data_length = len(self.data[list(self.data.keys())[0]])
+        #grid dimentions
         self.dims = (15,15)
 
+        #range is of the form [min,max]
+        self.range = range
+        self.x_axis = self.data[self.grid_locations[0]][:,0]
+
+        #indices for range start and end
+        if self.range == None:
+            self.min_index = 0
+            self.max_index = self.data_length
+        else:
+            self.min_index = next(i for i,v in enumerate(self.x_axis) if v >= self.range[0])
+            self.max_index = next(i-1 for i,v in enumerate(self.x_axis) if v > self.range[1])
 
         self.row_sums = [5, 14, 25, 38, 51, 66, 81, 96, 111, 126, 139, 152, 163, 172, 177]
         self.row_starts = [1] + [x + 1 for x in self.row_sums[:-1]]
@@ -68,14 +84,16 @@ class DataGrid:
             return pos_in_row
         return pos_in_row + self.row_sums[y-2]
 
-    def data_at(self,x,y):
+    def data_at(self,x,y,inRange=False):
         if not self.in_grid(x,y):
             return None
+        if inRange:
+            self.data[self.grid_num(x,y)][self.min_index:self.max_index,:]
         return self.data[self.grid_num(x,y)]
 
-    def data_at_loc(self,d):
+    def data_at_loc(self,d,inRange=False):
         x,y = self.coord(d)
-        return self.data_at(x,y)
+        return self.data_at(x,y,inRange)
 
     def get_data_array(self):
         data = np.empty(shape=(self.size,self.data_length))
