@@ -62,8 +62,8 @@ def similarity_vector(A,B):
     pB, _ = find_peaks(B)
     p = np.append(pA,pB,axis=0)
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
-    peaks = np.dot(A[p],B[p])/np.linalg.norm(A[p])/np.linalg.norm(B[p])
-    return peaks
+    #peaks = np.dot(A[p],B[p])/np.linalg.norm(A[p])/np.linalg.norm(B[p])
+    return cosine
 
 #cosine similarity function using two grid positions
 def similarity(d1,d2):
@@ -153,23 +153,25 @@ py = [y-1 for y in py]
 px_next = [15-x for x in px_next]
 py_next = [y-1 for y in py_next]
 
-ax_similarity = fig.add_subplot(3,3,1)
+ax_similarity = fig.add_subplot(2,3,1)
 ax_similarity.imshow(cgs)
 #ax_similarity.scatter(px,py,s=3,c='black')
 ax_similarity.invert_yaxis()
 ax_similarity.axis("off")
+ax_similarity.title.set_text(clusters)
 for i,txt in enumerate(pl):
     ax_similarity.annotate(txt,(px[i]-.4,py[i]-.4),size=8)
 
-ax_similarity_next = fig.add_subplot(3,3,2)
+ax_similarity_next = fig.add_subplot(2,3,2)
 ax_similarity_next.imshow(cgs_next)
 #ax_similarity_next.scatter(px_next,py_next,s=3,c='black')
 ax_similarity_next.invert_yaxis()
 ax_similarity_next.axis("off")
+ax_similarity_next.title.set_text(clusters+1)
 for i,txt in enumerate(pl_next):
     ax_similarity_next.annotate(txt,(px_next[i]-.4,py_next[i]-.4),size=8)
 
-ax_clusters = fig.add_subplot(3,3,3)
+ax_clusters = fig.add_subplot(2,3,3)
 ax_clusters.imshow(cg)
 ax_clusters.invert_yaxis()
 ax_clusters.axis("off")
@@ -177,7 +179,7 @@ ax_clusters.title.set_text(clusters)
 for i,loc in enumerate(pl):
     ax_clusters.annotate(chr(65 + labels[loc-1]),(px[i]-.4,py[i]-.4),size=8)
 
-ax_locs = fig.add_subplot(3,3,4)
+ax_locs = fig.add_subplot(2,3,4)
 ax_locs.imshow(cg)
 ax_locs.invert_yaxis()
 ax_locs.axis("off")
@@ -185,7 +187,7 @@ for i in range(dataGrid.size):
     x,y = dataGrid.coord(i+1)
     ax_locs.annotate(str(i+1),(15-x-.4,y-1-.4),size=6)
 
-ax_locs_next = fig.add_subplot(3,3,5)
+ax_locs_next = fig.add_subplot(2,3,5)
 ax_locs_next.imshow(cg_next)
 ax_locs_next.invert_yaxis()
 ax_locs_next.axis("off")
@@ -201,7 +203,7 @@ if len(new_centers) == 2:
 else:
     k2 = pl[labels[k1-1]]
 
-ax_plot = fig.add_subplot(3,1,3)
+ax_plot = fig.add_subplot(2,3,6)
 x = dataGrid.data_at_loc(k1)[:,1]
 y = dataGrid.data_at_loc(k1)[:,0]
 ax_plot.plot(y,x,label=str(k1))

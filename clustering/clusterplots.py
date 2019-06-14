@@ -38,8 +38,9 @@ plt.show()
 
 '''
 
-plt.plot(dataGrid.data[32][:,1])
-plt.plot(dataGrid.data[34][:,1])
+plt.plot(np.log(dataGrid.data[33][:,1]))
+plt.plot(np.log(dataGrid.data[28][:,1]))
+plt.plot(np.log(dataGrid.data[18][:,1]))
 plt.show()
 
 
@@ -51,7 +52,7 @@ def similarity_vector(A,B):
     p = np.append(pA,pB,axis=0)
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
     peaks = np.dot(A[p],B[p])/np.linalg.norm(A[p])/np.linalg.norm(B[p])
-    return peaks
+    return cosine
 
 #cosine similarity function using two grid positions
 def similarity(d1,d2):
@@ -239,8 +240,8 @@ def get_cluster_grids(i):
     return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc, agg.labels_
 
 
-min = 4
-max = 8
+min = 1
+max = 35
 cluster_range = range(min,max+1)
 
 

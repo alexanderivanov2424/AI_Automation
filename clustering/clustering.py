@@ -187,7 +187,8 @@ def get_cluster_grids(i):
         x,y = dataGrid.coord(val)
         cluster = agg.labels_[val-1]
         similarity = similarity_vector(dataGrid.data_at_loc(val)[:,1],averages[cluster])
-        similarity = math.pow(similarity,5)
+
+        similarity = math.pow(similarity,10)
         cluster_grid_scale[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,similarity])
         cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
 
