@@ -240,8 +240,8 @@ def get_cluster_grids(i):
     return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc, agg.labels_
 
 
-min = 1
-max = 35
+min = 3
+max = 4
 cluster_range = range(min,max+1)
 
 

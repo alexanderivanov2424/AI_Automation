@@ -68,7 +68,7 @@ for val in range(1,178):
     if len(sim_values) == 0:
         grid[y-1][15-x] = 1
         continue
-    grid[y-1][15-x] = np.min(sim_values)
+    grid[y-1][15-x] = 1 - np.min(sim_values)
 
 
 def getPointsX(x,list):
