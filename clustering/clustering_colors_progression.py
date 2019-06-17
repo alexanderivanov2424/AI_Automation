@@ -149,6 +149,7 @@ def get_cluster_grids(i):
         agg.fit(D)
         avg = get_averages(agg)
         px,py,pl = get_avg_loc(agg,clusters,avg)
+
         if clusters == base_clusters:
             pl_prev = pl
             dict = {}
@@ -167,14 +168,8 @@ def get_cluster_grids(i):
         update_lists(hues,pl_prev,labels_prev,agg.labels_,k1,k2,parent)
 
 
-
-    #agg = AgglomerativeClustering(n_clusters=i, affinity='precomputed',linkage='complete')
-    #agg.fit(D)
-    #averages = get_averages(agg)
-    #points_x, points_y, points_loc = get_avg_loc(agg,i,averages)
-
-    averages = avg
-    points_x, points_y, points_loc =px,py,pl
+    averages = get_averages(agg)
+    points_x, points_y, points_loc = get_avg_loc(agg,i,averages)
 
     cluster_grid = np.zeros(shape = (15,15,3))
     cluster_grid_scale = np.zeros(shape = (15,15,3))
@@ -191,34 +186,36 @@ def get_cluster_grids(i):
     return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc
 
 
-start = 176
+start = 177
 end = 177
 cluster_range = range(start,end+1)
 
-fig = plt.figure()
-ax = fig.subplots(nrows=2, ncols=len(cluster_range))
+fig = plt.figure(figsize=(5,10))
+ax = fig.subplots(nrows=3, ncols=1)
 
-for n,i in enumerate(cluster_range):
+for i in cluster_range:
     cg, cgs, px, py, pl = get_cluster_grids(i)
     px = [15-x for x in px]
     py = [y-1 for y in py]
-    ax[0,n].imshow(cg)
-    ax[0,n].invert_yaxis()
-    ax[0,n].axis("off")
-    ax[0,n].title.set_text(i)
-    '''
-    ax[1,n].imshow(cgs)
-    ax[1,n].scatter(px,py,s=3,c='black')
-    ax[1,n].invert_yaxis()
-    ax[1,n].axis("off")
+    ax[0].imshow(cg)
+    ax[0].invert_yaxis()
+    ax[0].axis("off")
+    ax[0].title.set_text(i)
 
-    ax[2,n].imshow(cgs)
-    ax[2,n].scatter(px,py,s=3,c='black')
-    ax[2,n].invert_yaxis()
-    ax[2,n].axis("off")
+    ax[1].imshow(cgs)
+    ax[1].scatter(px,py,s=3,c='black')
+    ax[1].invert_yaxis()
+    ax[1].axis("off")
+
+    ax[2].imshow(cgs)
+    ax[2].scatter(px,py,s=3,c='black')
+    ax[2].invert_yaxis()
+    ax[2].axis("off")
     for i,txt in enumerate(pl):
-        ax[2,n].annotate(txt,(px[i],py[i]))
-    '''
+        ax[2].annotate(txt,(px[i],py[i]))
+    fig.tight_layout()
+    plt.draw()
+    plt.pause(.001)
 
 fig.tight_layout()
 k=.01
