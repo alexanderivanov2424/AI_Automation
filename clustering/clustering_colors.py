@@ -85,14 +85,12 @@ def update_lists(hue,points,labels,labels_new,k1,k2,parent):
     hue_next = hue[(i+1) % len(points)]
     hue_delta = min(abs(hue_next-hue_prev),abs(hue_next-hue_prev+1.0))
 
-    k1_l = labels[k1-1]
-    k2_l = labels[k2-1]
-    parent_l = labels[parent]
+
 
     points.remove(parent)
     hue.remove(hue[i])
 
-    print("labels:",i,labels[parent-1],labels_new[k1-1],labels_new[k2-1])
+    #print("labels:",i,labels[parent-1],labels_new[k1-1],labels_new[k2-1])
 
 
     if similarity(prev,k1) > similarity(prev,k2):
@@ -107,15 +105,14 @@ def update_lists(hue,points,labels,labels_new,k1,k2,parent):
         points.insert(i,k1)
         hue.insert(i,hue_k1)
 
-
         for val in range(1,178):
-            if labels[val-1] == labels[parent-1]:
+            if labels[val-1] == i:
                 if labels_new[val-1] == labels_new[k1-1]:
                     labels[val-1] = i
                 else:
                     labels[val-1] = (i+1)% len(points)
             else:
-                if labels[val-1] > labels[parent-1]:
+                if labels[val-1] > i:
                     labels[val-1] += 1
                 labels[val-1] = (labels[val-1])% len(points)
 
@@ -132,13 +129,13 @@ def update_lists(hue,points,labels,labels_new,k1,k2,parent):
         hue.insert(i,hue_k2)
 
         for val in range(1,178):
-            if labels[val-1] == labels[parent-1]:
+            if labels[val-1] == i:
                 if labels_new[val-1] == labels_new[k2-1]:
                     labels[val-1] = i
                 else:
                     labels[val-1] = (i+1)% len(points)
             else:
-                if labels[val-1] > labels[parent-1]:
+                if labels[val-1] > i:
                     labels[val-1] += 1
                 labels[val-1] = (labels[val-1])% len(points)
 
@@ -179,9 +176,11 @@ def get_cluster_grids(i):
         #print(k1,k2,parent)
         print()
         print(clusters)
-        [print(p,labels_prev[p]) for p in pl_prev]
+        [print(p,labels_prev[p-1]) for p in pl_prev]
+        print("k1 ",k1,labels_prev[k1-1])
+        print("k2 ",k2,labels_prev[k2-1])
         update_lists(hues,pl_prev,labels_prev,agg.labels_,k1,k2,parent)
-        [print(p,labels_prev[p]) for p in pl_prev]
+        [print(p,labels_prev[p-1]) for p in pl_prev]
         #labels_prev = agg.labels_
 
 
@@ -213,8 +212,8 @@ def get_cluster_grids(i):
     return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc
 
 
-start = 3
-end = 6
+start = 5
+end = 15
 cluster_range = range(start,end+1)
 
 fig = plt.figure()
