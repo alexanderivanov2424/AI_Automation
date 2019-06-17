@@ -85,13 +85,8 @@ def update_lists(hue,points,labels,labels_new,k1,k2,parent):
     hue_next = hue[(i+1) % len(points)]
     hue_delta = min(abs(hue_next-hue_prev),abs(hue_next-hue_prev+1.0))
 
-
-
     points.remove(parent)
     hue.remove(hue[i])
-
-    #print("labels:",i,labels[parent-1],labels_new[k1-1],labels_new[k2-1])
-
 
     if similarity(prev,k1) > similarity(prev,k2):
         a = similarity(prev,k1)
@@ -168,28 +163,10 @@ def get_cluster_grids(i):
             k2 = new_centers[1]
         else:
             k2 = pl_prev[labels_prev[k1-1]]
-
-        #print(clusters,pl,pl_prev)
-        #[print(p,labels_prev[p]) for p in pl_prev]
         parent = pl_prev[labels_prev[k1-1]]
 
-        #print(k1,k2,parent)
-        print()
-        print(clusters)
-        [print(p,labels_prev[p-1]) for p in pl_prev]
-        print("k1 ",k1,labels_prev[k1-1])
-        print("k2 ",k2,labels_prev[k2-1])
         update_lists(hues,pl_prev,labels_prev,agg.labels_,k1,k2,parent)
-        [print(p,labels_prev[p-1]) for p in pl_prev]
-        #labels_prev = agg.labels_
 
-
-
-    #agg = AgglomerativeClustering(n_clusters=i, memory="/home/sasha/Desktop/", compute_full_tree = True, affinity='precomputed',linkage='complete')
-    #print(agg.get_params(deep=True))
-    #agg.fit(D)
-    #hues = [float(float(x)/float(i)) for x in range(1,i+1)]
-    #agg.labels_ = labels_prev
 
     averages = get_averages(agg)
     points_x, points_y, points_loc = get_avg_loc(agg,i,averages)
@@ -206,9 +183,6 @@ def get_cluster_grids(i):
         cluster_grid_scale[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,similarity])
         cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
 
-
-
-
     return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc
 
 
@@ -218,7 +192,6 @@ cluster_range = range(start,end+1)
 
 fig = plt.figure()
 ax = fig.subplots(nrows=3, ncols=len(cluster_range))
-
 
 for n,i in enumerate(cluster_range):
     cg, cgs, px, py, pl = get_cluster_grids(i)
