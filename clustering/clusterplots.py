@@ -241,7 +241,7 @@ def get_cluster_grids(i):
 
 
 min = 3
-max = 4
+max = 8
 cluster_range = range(min,max+1)
 
 
@@ -282,7 +282,7 @@ for n,i in enumerate(cluster_range):
     if len(new_centers) == 2:
         k2 = new_centers[1]
     else:
-        k2 = pl[labels[k1]]
+        k2 = pl[labels[k1-1]]
 
     x = dataGrid.data_at_loc(k1)[:,1]
     ax[0,1].plot(x,label=str(k1))

@@ -1,5 +1,4 @@
 '''
-
 Script for analysing the differences between clusters and
 for determining relative similarity between cluster centers
 
@@ -9,13 +8,9 @@ Cluster labels and similarity to cluster center is computed
 for all grid locations and saved to an excel file.
 
 Alexander Ivanov
-
 '''
 
-
-
 '''
-
 ADD AVERAGE TO PLOT
 '''
 
