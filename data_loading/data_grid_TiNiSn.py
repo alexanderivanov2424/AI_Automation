@@ -4,7 +4,9 @@ from data_loading.data_grid import DataGrid
 
 
 
-
+'''
+Object to load data from TiNiSn_500C dataset
+'''
 class DataGrid_TiNiSn_500C(DataGrid):
 
     def __init__(self):
@@ -15,7 +17,9 @@ class DataGrid_TiNiSn_500C(DataGrid):
 
 
 
-
+'''
+Object to load data from TiNiSn_600C dataset
+'''
 class DataGrid_TiNiSn_600C(DataGrid):
 
     def __init__(self):

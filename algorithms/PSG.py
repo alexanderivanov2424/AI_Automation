@@ -31,7 +31,7 @@ parser.add_argument('-v','--video', action='store_true',
 parser.add_argument('--graphics', action='store_true',
                     help="Show plot real time")
 parser.add_argument('--delay', type=float, default=0.001,
-                    help='delay between video frames')
+                    help='additional delay for onscreen graphics')
 parser.set_defaults(video=False)
 parser.set_defaults(graphics=False)
 args = parser.parse_args()
@@ -188,6 +188,7 @@ if args.video:
     print("Data log save to " + data_path)
 
 
+#Display final stats of simulation
 print()
 print("Finished Sampling")
 print("_________________")

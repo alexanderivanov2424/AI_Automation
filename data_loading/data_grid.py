@@ -1,4 +1,12 @@
+'''
+DATA GRID
 
+Object used to represent measurements on a grid and several functions to
+convert coordinate systems and find neighbors.
+
+Specifically implemented with 177 point grid as in TiNiSn data set.
+
+'''
 import pandas as pd
 import numpy as np
 import os
@@ -6,9 +14,11 @@ import re
 
 class DataGrid:
 
+    # path - where data is loaded from
+    # regex - how to parse the grid locations from the file names
+    # range - [optional] specific range on the x-axis to consider
     def __init__(self, path, regex, range=None):
         files = os.listdir(path)
-
 
         #regex to parse grid location from file
         pattern = re.compile(regex, re.VERBOSE)
@@ -43,12 +53,16 @@ class DataGrid:
             self.min_index = next(i for i,v in enumerate(self.x_axis) if v >= self.range[0])
             self.max_index = next(i-1 for i,v in enumerate(self.x_axis) if v > self.range[1])
 
+        #the right most, left most, bottom most, and top most grid
+        #locations in the rows and columns respectively.
         self.row_sums = [5, 14, 25, 38, 51, 66, 81, 96, 111, 126, 139, 152, 163, 172, 177]
         self.row_starts = [1] + [x + 1 for x in self.row_sums[:-1]]
-        self.row_lengths = [5,9,11,13,13,15,15,15,15,15,13,13,11,9,5]
         self.base_vals = [52,26,15,6,7,1,2,3,4,5,13,14,25,38,66]
         self.top_vals = [112,140,153,164,165,173,174,175,176,177,171,172,163,152,126]
+        #lengths of each row
+        self.row_lengths = [5,9,11,13,13,15,15,15,15,15,13,13,11,9,5]
 
+    #methods used for the get_neighbors method
     def get_row(self,d):
         return next(i for i,s in enumerate(self.row_sums) if d-s <= 0) + 1
     def up_shift(self,d):
@@ -56,6 +70,7 @@ class DataGrid:
     def down_shift(self,d):
         return (self.row_lengths[self.get_row(d)-2] + self.row_lengths[self.get_row(d)-1])//2
 
+    #return all of the neighbors of a grid location in a dictionary
     def neighbors(self,d):
         neighbor_dict = {}
         if d not in self.row_starts: #left neighbor
@@ -84,6 +99,7 @@ class DataGrid:
             return pos_in_row
         return pos_in_row + self.row_sums[y-2]
 
+    #returns the data at an x,y location
     def data_at(self,x,y,inRange=False):
         if not self.in_grid(x,y):
             return None
@@ -91,16 +107,19 @@ class DataGrid:
             self.data[self.grid_num(x,y)][self.min_index:self.max_index,:]
         return self.data[self.grid_num(x,y)]
 
+    #returns data at a grid locations
     def data_at_loc(self,d,inRange=False):
         x,y = self.coord(d)
         return self.data_at(x,y,inRange)
 
+    #returns all data as a measurement array
     def get_data_array(self):
         data = np.empty(shape=(self.size,self.data_length))
         for i in range(self.size):
             data[i] = self.data[i+1][:,1]
         return data
 
+    #check if a coordinate is in the grid
     def in_grid(self,x,y):
         if x > 15 or x <= 0:
             return False

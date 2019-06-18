@@ -1,4 +1,8 @@
+'''
+SIMILARITY
 
+Object used to represent a similarity metric.
+'''
 from scipy.signal import find_peaks
 import numpy as np
 

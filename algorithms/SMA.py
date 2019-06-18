@@ -29,7 +29,7 @@ parser.add_argument('-v','--video', action='store_true',
 parser.add_argument('--graphics', action='store_true',
                     help="Show plot real time")
 parser.add_argument('--delay', type=float, default=0.001,
-                    help='delay between video frames')
+                    help='additional delay for onscreen graphics')
 parser.set_defaults(video=False)
 parser.set_defaults(graphics=False)
 args = parser.parse_args()
@@ -146,10 +146,8 @@ while len(S) < NUMBER_OF_SAMPLES:
 
     time.start()
 
-
-
-
-    M[C-1] = dataGrid.data_at_loc(C)[:,1] #"taking a measurement"
+    #Take a measurement at C
+    M[C-1] = dataGrid.data_at_loc(C)[:,1]
     S.add(C)
 
     time.stop()
@@ -186,6 +184,7 @@ if args.video:
     print("Data log save to " + data_path)
 
 
+#Display final stats of simulation
 print()
 print("Finished Sampling")
 print("_________________")

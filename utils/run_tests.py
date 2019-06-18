@@ -3,7 +3,7 @@
 Run multiple simulations one after another and save results.
 
 '''
-#TODO Threading
+#TODO Threading/make parallel
 
 import os
 command = "python3 -m algorithms.PSG --graphics --video -s"

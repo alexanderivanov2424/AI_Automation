@@ -1,4 +1,8 @@
+'''
+UTILS
 
+General class to hold methods.
+'''
 from data_loading.data_grid import DataGrid
 
 from scipy.interpolate import griddata
@@ -9,6 +13,7 @@ import csv
 import sys
 
 #Note empty data starts with a zero reading
+#interpolate a measurement array with cubic splines
 def interpolateDataCubic(measurement_array,dataGrid):
     full_data = measurement_array.copy()
 
@@ -37,6 +42,8 @@ def interpolateDataCubic(measurement_array,dataGrid):
             full_data[j,i] = v
     return full_data
 
+
+#interpolate a measurement array with nearest method
 def interpolateDataNearest(measurement_array,dataGrid):
     full_data = measurement_array.copy()
 
@@ -63,6 +70,8 @@ def interpolateDataNearest(measurement_array,dataGrid):
             full_data[j,i] = v
     return full_data
 
+
+#interpolate a measurement array with linear splines
 def interpolateDataLinear(measurement_array,dataGrid):
     full_data = measurement_array.copy()
 
@@ -90,6 +99,8 @@ def interpolateDataLinear(measurement_array,dataGrid):
             full_data[j,i] = v
     return full_data
 
+
+#interpolate a measurement array by filling holes with average value
 def interpolateDataAvg(measurement_array):
     full_data = measurement_array.copy()
     avg = np.mean([x for x in full_data if np.any(x)],axis=0)
@@ -98,6 +109,8 @@ def interpolateDataAvg(measurement_array):
             full_data[i] = avg
     return full_data
 
+#generate a dissimilarity matrix from a measurement array
+#keys - the directions in which similarity is computed
 def getDissimilarityMatrix(M, metric, dataGrid, keys = ['up', 'left', 'right', 'down']):
     grid = np.zeros(shape=dataGrid.dims)
 
@@ -112,6 +125,7 @@ def getDissimilarityMatrix(M, metric, dataGrid, keys = ['up', 'left', 'right', '
         grid[x-1][y-1] = 1 - np.amin(sims)
     return grid
 
+#trim a grid by making all the values outside the actual grid wafer nan
 def trim_outside_grid(data,dataGrid):
     arr = data.copy()
     for x in range(arr.shape[0]):
@@ -120,13 +134,14 @@ def trim_outside_grid(data,dataGrid):
                 arr[x,y] = np.nan
     return arr
 
-
+#write a dictionary to a csv file
 def dict_to_csv(dict,path,file_name):
     with open(path + file_name + ".csv", 'w') as csv_file:
         writer = csv.writer(csv_file)
         for k, v in dict.items():
            writer.writerow([k, v])
 
+#read a dictionary from a csv file
 def csv_to_dict(path,file_name):
     with open(path + file_name + ".csv") as csv_file:
         reader = csv.reader(csv_file)

@@ -181,8 +181,8 @@ def get_cluster_grids(i):
     return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc
 
 
-start = 20
-end = start+10
+start = 176
+end = 177
 cluster_range = range(start,end+1)
 
 fig = plt.figure()

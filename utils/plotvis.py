@@ -1,4 +1,11 @@
+'''
+PLOT VISUALIZER
 
+Object used to visualise algorithm steps.
+
+Renders grayscale grids, measurement arrays, and text.
+Handles saving data and video file.
+'''
 from data_loading.data_grid import DataGrid
 
 from utils.utils import trim_outside_grid
@@ -15,6 +22,7 @@ class PlotVisualizer:
 
     def __init__(self, name, dims, dataGrid, titles=None):
 
+        #plot dimensions
         self.dims = dims
         self.dataGrid = dataGrid
         self.fig = plt.figure(num=name)
