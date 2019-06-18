@@ -54,6 +54,9 @@ class PlotVisualizer:
         self.save = False
 
     def check(self,r,c):
+        """
+        Check if valid row and column are passed
+        """
         if r < 0 or self.dims[0] <= r:
             print("Invalid row for subplot: " + str(r))
             sys.exit()
