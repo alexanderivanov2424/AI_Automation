@@ -3,7 +3,6 @@ from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_
 
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import KMeans
-from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
@@ -12,22 +11,18 @@ import math
 import warnings
 warnings.simplefilter("ignore")
 
-
-
-#folder with data files
-
+# LOAD DATA
 dataGrid = DataGrid_TiNiSn_500C()
 
-
+"""cosine similarity of two vectors"""
 def similarity_vector(A,B):
     pA, _ = find_peaks(A)
     pB, _ = find_peaks(B)
     p = np.append(pA,pB,axis=0)
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
-    #peaks = np.dot(A[p],B[p])/np.linalg.norm(A[p])/np.linalg.norm(B[p])
     return cosine
 
-#cosine similarity function using two grid positions
+"""cosine similarity function using two grid positions"""
 def similarity(d1,d2):
     a = dataGrid.data[d1][:,1]
     b = dataGrid.data[d2][:,1]
@@ -46,6 +41,9 @@ for x in range(size):
 
 
 def get_averages(agg,clusters):
+    """
+    Get the everage values for each cluster
+    """
     grouped_data = [[] for x in range(clusters)]
     for loc,val in enumerate(agg.labels_):
         grouped_data[val].append(dataGrid.data_at_loc(loc+1)[:,1])
@@ -54,6 +52,9 @@ def get_averages(agg,clusters):
     return averages
 
 def get_avg_loc(agg,clusters,averages):
+    """
+    Get the locations of the average points in the clustering
+    """
     points_x = [-1 for x in range(clusters)]
     points_y = [-1 for x in range(clusters)]
     points_loc = [-1 for x in range(clusters)]
@@ -78,6 +79,11 @@ def get_avg_loc(agg,clusters,averages):
     return points_x, points_y, points_loc
 
 def update_lists(hue,points,labels,labels_new,k1,k2,parent):
+    """
+    Figure out what order k1, k2 need to replace the parent.
+    Based on this order compute the new hues and update "hue"
+    Based on this order compute the new labels and update "labels"
+    """
     i = points.index(parent)
     prev = points[(i-1) % len(points)]
     next = points[(i+1) % len(points)]
@@ -134,12 +140,16 @@ def update_lists(hue,points,labels,labels_new,k1,k2,parent):
                     labels[val-1] += 1
                 labels[val-1] = (labels[val-1])% len(points)
 
-
-#generate all clustering up to desired amount
-#returns visuals in list of arrays were each index is for a cluster
+#the base number of clusters where the colors are initialized with equal spread
+#does not work with 2 or 1 because of update_lists()
 base_clusters = 3
 def get_cluster_grids(i):
+    """
+    generate all clustering up to desired amount
+    returns visuals in list of arrays were each index is for a cluster
+    """
 
+    #save intermitent data
     list_cluster_grid = []
     list_px = []
     list_py = []
@@ -185,9 +195,11 @@ def get_cluster_grids(i):
     return list_cluster_grid, list_px, list_py, list_pl
 
 
-start = 175
+start = 177
 end = 177
 cluster_range = range(start,end+1)
+if start == end:
+    cluster_range = [start,start]
 
 fig = plt.figure()
 ax = fig.subplots(nrows=2, ncols=len(cluster_range))
