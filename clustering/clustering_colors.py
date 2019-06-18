@@ -143,7 +143,7 @@ def get_cluster_grids(i):
     list_cluster_grid = []
     list_px = []
     list_py = []
-    listpl = []
+    list_pl = []
 
 
     hues = [float(float(x)/float(base_clusters)) for x in range(1,base_clusters+1)]
@@ -161,16 +161,16 @@ def get_cluster_grids(i):
             for l,p in enumerate(pl):
                 dict[agg.labels_[p-1]] = l
             labels_prev = [dict[agg.labels_[val]] for val in range(0,177)]
-            continue
-        new_centers = list(set(pl).difference(set(pl_prev)))
-        k1 = new_centers[0]
-        if len(new_centers) == 2:
-            k2 = new_centers[1]
         else:
-            k2 = pl_prev[labels_prev[k1-1]]
-        parent = pl_prev[labels_prev[k1-1]]
+            new_centers = list(set(pl).difference(set(pl_prev)))
+            k1 = new_centers[0]
+            if len(new_centers) == 2:
+                k2 = new_centers[1]
+            else:
+                k2 = pl_prev[labels_prev[k1-1]]
+            parent = pl_prev[labels_prev[k1-1]]
 
-        update_lists(hues,pl_prev,labels_prev,agg.labels_,k1,k2,parent)
+            update_lists(hues,pl_prev,labels_prev,agg.labels_,k1,k2,parent)
 
         cluster_grid = np.zeros(shape = (15,15,3))
         for val in range(1,178):
@@ -185,8 +185,8 @@ def get_cluster_grids(i):
     return list_cluster_grid, list_px, list_py, list_pl
 
 
-start = 3
-end = 5
+start = 175
+end = 177
 cluster_range = range(start,end+1)
 
 fig = plt.figure()
