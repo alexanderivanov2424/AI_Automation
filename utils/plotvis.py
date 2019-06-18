@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import imageio
 import numpy as np
+import os
 
 
 
@@ -70,8 +71,15 @@ class PlotVisualizer:
 
 
     def save_to_paths(self,video_path,data_path):
-        imageio.mimwrite(video_path + self.file_name + ".mp4", self.video, fps=2)
-        dict_to_csv(self.data_log,data_path,self.file_name)
+        if not os.path.exists(video_path):
+            os.makedirs(video_path)
+        imageio.mimwrite(os.path.join(video_path, self.file_name +".mp4"), self.video, fps=2)
+        print("Video saved to " + video_path)
+
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)
+        dict_to_csv(self.data_log,os.path.join(data_path,self.file_name + ".csv"))
+        print("Data log save to " + data_path)
 
     def show_plot(self):
         plt.show()

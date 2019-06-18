@@ -184,8 +184,7 @@ if args.video:
     video_path = "/home/sasha/Desktop/python/videos/"
     data_path = "/home/sasha/Desktop/python/logs/"
     plotVisualizer.save_to_paths(video_path,data_path)
-    print("Video saved to " + video_path)
-    print("Data log save to " + data_path)
+
 
 
 #Display final stats of simulation

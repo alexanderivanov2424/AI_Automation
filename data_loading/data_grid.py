@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
+import sys
 
 class DataGrid:
 
@@ -22,6 +23,10 @@ class DataGrid:
 
         #regex to parse grid location from file
         pattern = re.compile(regex, re.VERBOSE)
+
+        if len(files) == 0:
+            print("no files in path")
+            sys.exit()
 
         print("Loading Data from: " + path)
         #load csv files into dictionary
@@ -39,6 +44,10 @@ class DataGrid:
         self.grid_locations = list(self.data.keys())
         if verbose:
             print("Locations: " + str(self.grid_locations.sort()))
+
+        if len(self.grid_locations) < 177:
+            print("# WARNING: missing data files")
+            
         print("Data Loaded Succesfully")
 
         #number of grid locations

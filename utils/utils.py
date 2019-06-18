@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 import sys
+import os
 
 #Note empty data starts with a zero reading
 #interpolate a measurement array with cubic splines
@@ -135,8 +136,8 @@ def trim_outside_grid(data,dataGrid):
     return arr
 
 #write a dictionary to a csv file
-def dict_to_csv(dict,path,file_name):
-    with open(path + file_name + ".csv", 'w') as csv_file:
+def dict_to_csv(dict,path):
+    with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
         for k, v in dict.items():
            writer.writerow([k, v])
