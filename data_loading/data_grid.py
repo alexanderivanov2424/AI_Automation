@@ -15,12 +15,17 @@ import sys
 
 class DataGrid:
 
-    # path - where data is loaded from
-    # regex - how to parse the grid locations from the file names
-    # range - [optional] specific range on the x-axis to consider
-    def __init__(self, path, regex, range=None, verbose=False):
-        files = os.listdir(path)
 
+    def __init__(self, path, regex, range=None, verbose=False):
+        """
+        Load data and initialize data grid
+
+        # path - where data is loaded from
+        # regex - how to parse the grid locations from the file names
+        # range - [optional] specific range on the x-axis to consider
+        
+        """
+        files = os.listdir(path)
         #regex to parse grid location from file
         pattern = re.compile(regex, re.VERBOSE)
 
@@ -47,7 +52,7 @@ class DataGrid:
 
         if len(self.grid_locations) < 177:
             print("# WARNING: missing data files")
-            
+
         print("Data Loaded Succesfully")
 
         #number of grid locations
@@ -78,7 +83,11 @@ class DataGrid:
         #lengths of each row
         self.row_lengths = [5,9,11,13,13,15,15,15,15,15,13,13,11,9,5]
 
-    #methods used for the get_neighbors method
+    """
+    Getting the row of a grid locations
+    Getting the distance to the location above
+    Getting the distance to the location below
+    """
     def get_row(self,d):
         return next(i for i,s in enumerate(self.row_sums) if d-s <= 0) + 1
     def up_shift(self,d):
@@ -86,8 +95,12 @@ class DataGrid:
     def down_shift(self,d):
         return (self.row_lengths[self.get_row(d)-2] + self.row_lengths[self.get_row(d)-1])//2
 
-    #return all of the neighbors of a grid location in a dictionary
+
     def neighbors(self,d):
+        """
+        Get the neighbors of a grid location
+        Returned as dictionary to parse specific neighbors
+        """
         neighbor_dict = {}
         if d not in self.row_starts: #left neighbor
             neighbor_dict['left'] = d-1
@@ -99,8 +112,11 @@ class DataGrid:
             neighbor_dict['down'] = d - self.down_shift(d)
         return neighbor_dict
 
-    # function to get grid location from the grid location number
     def coord(self,d):
+        """
+        Get the x,y coordinate of a grid location.
+        Note: x,y start at 1 as in grid map images
+        """
         y = self.get_row(d)
         pos_in_row = d
         if y > 1:
@@ -108,35 +124,51 @@ class DataGrid:
         x = 8 - (self.row_lengths[y-1]+1)//2 + pos_in_row
         return x,y
 
-    #function to get grid location number from coordinate
     def grid_num(self,x,y):
+        """
+        Get grid location from x,y coordinate.
+        Note: x,y start at 1 as in grid map images
+        """
         pos_in_row = x + (self.row_lengths[y-1]+1)//2 - 8
         if y == 1:
             return pos_in_row
         return pos_in_row + self.row_sums[y-2]
 
-    #returns the data at an x,y location
     def data_at(self,x,y,inRange=False):
+        """
+        Get the data at a specific grid x,y
+        Note: x,y start at 1 as in grid map images
+        """
         if not self.in_grid(x,y):
             return None
         if inRange:
             self.data[self.grid_num(x,y)][self.min_index:self.max_index,:]
         return self.data[self.grid_num(x,y)]
 
-    #returns data at a grid locations
     def data_at_loc(self,d,inRange=False):
+        """
+        Get the data at a specific grid Locations
+        """
         x,y = self.coord(d)
         return self.data_at(x,y,inRange)
 
-    #returns all data as a measurement array
     def get_data_array(self):
+        """
+        Get all of the measurement data as array
+        shape = (# of grid locations, length of each spectra)
+
+        Spectra are converted to 1D height arrays
+        """
         data = np.empty(shape=(self.size,self.data_length))
         for i in range(self.size):
             data[i] = self.data[i+1][:,1]
         return data
 
-    #check if a coordinate is in the grid
     def in_grid(self,x,y):
+        """
+        Verify that a grid x,y coordinate is in the grid
+        Note: x,y start at 1 as in grid map images
+        """
         if x > 15 or x <= 0:
             return False
         if y > 15 or y <= 0:

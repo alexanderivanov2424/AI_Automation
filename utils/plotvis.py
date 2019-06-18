@@ -23,6 +23,16 @@ class PlotVisualizer:
 
     def __init__(self, name, dims, dataGrid, titles=None):
 
+        """
+        Initialize plots
+
+        # name - figure name
+        # dims - dimensions of subplots
+        # dataGrid - dataGrid object to be used for rendering
+        # titles - [optional] titles of subplots. can be set via method
+
+        """
+
         #plot dimensions
         self.dims = dims
         self.dataGrid = dataGrid
@@ -43,18 +53,41 @@ class PlotVisualizer:
         self.scatter = [[[] for y in range(dims[1])] for x in range(dims[0])]
         self.save = False
 
+    def check(self,r,c):
+        if r < 0 or self.dims[0] <= r:
+            print("Invalid row for subplot: " + str(r))
+            sys.exit()
+        if c < 0 or self.dims[1] <= c:
+            print("Invalid col for subplot: " + str(c))
+            sys.exit()
 
     def set_title(self,r,c,title):
+        """
+        Set title of specific subplot
+        """
+        self.check(r,c)
         self.ax[r,c].title.set_text(title)
         self.fig.tight_layout()
 
     def point(self,r,c,x,y,s,color):
+        """
+        Plot a point in a subplot
+        """
+        self.check(r,c)
         self.scatter[r][c].append(self.ax[r,c].scatter(x,y,s=s,c=color))
 
     def reset_axis(self,r,c):
+        """
+        Reset points in a subplot
+        """
+        self.check(r,c)
         [x.set_visible(False) for x in self.scatter[r][c]]
 
     def with_save(self,file_name):
+        """
+        Toggle saving video and data files
+        This only records video and data but does not save
+        """
         self.save = True
         self.video = []
         self.data_log = {}
@@ -62,6 +95,13 @@ class PlotVisualizer:
         self.step = 0
 
     def save_frame(self):
+        """
+        Saves a specific frame to the video
+        """
+        if not self.save:
+            print("# WARNING:\tSaving not set\n\t\tRun \"with_save(\'file_name\')\"")
+            print()
+            return
         self.fig.canvas.draw()
         plt.draw()
         frame = np.fromstring(self.fig.canvas.tostring_rgb(), dtype='uint8')
@@ -90,6 +130,7 @@ class PlotVisualizer:
 
 
     def plot_grid(self,grid,r,c):
+        self.check(r,c)
         if len(grid.shape) == 1:
             G = np.zeros(shape=self.dataGrid.dims)
             for i,v in enumerate(grid):
@@ -102,11 +143,13 @@ class PlotVisualizer:
 
 
     def plot_measurement(self,measurements,metric,r,c):
+        self.check(r,c)
         dis_matrix = getDissimilarityMatrix(measurements,metric,self.dataGrid)
         self.ax[r,c].imshow(trim_outside_grid(dis_matrix,self.dataGrid))
 
 
     def plot_text(self,times,true_data,exp_data,r,c):
+        self.check(r,c)
         if self.text[r][c] == None:
             self.text[r][c] = self.ax[r,c].text(0, 0, "", fontsize=10)
         if len(times) == 0 :
