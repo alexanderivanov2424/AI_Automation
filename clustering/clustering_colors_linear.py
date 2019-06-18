@@ -44,8 +44,8 @@ for x in range(size):
         D[x,y] = 1 - similarity(x+1,y+1)
 
 
-def get_averages(agg):
-    grouped_data = [[] for x in range(i)]
+def get_averages(agg,clusters):
+    grouped_data = [[] for x in range(clusters)]
     for loc,val in enumerate(agg.labels_):
         grouped_data[val].append(dataGrid.data_at_loc(loc+1)[:,1])
 
@@ -144,7 +144,7 @@ def get_cluster_grids(i):
     for clusters in range(base_clusters,i+1):
         agg = AgglomerativeClustering(n_clusters=clusters, affinity='precomputed',linkage='complete')
         agg.fit(D)
-        avg = get_averages(agg)
+        avg = get_averages(agg,clusters)
         px,py,pl = get_avg_loc(agg,clusters,avg)
         if clusters == base_clusters:
             pl_prev = pl

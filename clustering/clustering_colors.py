@@ -45,8 +45,8 @@ for x in range(size):
         D[x,y] = 1 - similarity(x+1,y+1)
 
 
-def get_averages(agg):
-    grouped_data = [[] for x in range(i)]
+def get_averages(agg,clusters):
+    grouped_data = [[] for x in range(clusters)]
     for loc,val in enumerate(agg.labels_):
         grouped_data[val].append(dataGrid.data_at_loc(loc+1)[:,1])
 
@@ -135,10 +135,16 @@ def update_lists(hue,points,labels,labels_new,k1,k2,parent):
                 labels[val-1] = (labels[val-1])% len(points)
 
 
-#calculate i clusters and create grid visuals and center points
+#generate all clustering up to desired amount
+#returns visuals in list of arrays were each index is for a cluster
 base_clusters = 3
 def get_cluster_grids(i):
-    #generate all clustering up to desired amount
+
+    list_cluster_grid = []
+    list_px = []
+    list_py = []
+    listpl = []
+
 
     hues = [float(float(x)/float(base_clusters)) for x in range(1,base_clusters+1)]
 
@@ -147,7 +153,7 @@ def get_cluster_grids(i):
     for clusters in range(base_clusters,i+1):
         agg = AgglomerativeClustering(n_clusters=clusters, affinity='precomputed',linkage='complete')
         agg.fit(D)
-        avg = get_averages(agg)
+        avg = get_averages(agg,clusters)
         px,py,pl = get_avg_loc(agg,clusters,avg)
         if clusters == base_clusters:
             pl_prev = pl
@@ -166,59 +172,35 @@ def get_cluster_grids(i):
 
         update_lists(hues,pl_prev,labels_prev,agg.labels_,k1,k2,parent)
 
+        cluster_grid = np.zeros(shape = (15,15,3))
+        for val in range(1,178):
+            x,y = dataGrid.coord(val)
+            cluster = labels_prev[val-1]
+            cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
+
+        list_cluster_grid.append(cluster_grid)
+        list_px.append(px)
+        list_py.append(py)
+        list_pl.append(pl)
+    return list_cluster_grid, list_px, list_py, list_pl
 
 
-    #agg = AgglomerativeClustering(n_clusters=i, affinity='precomputed',linkage='complete')
-    #agg.fit(D)
-    #averages = get_averages(agg)
-    #points_x, points_y, points_loc = get_avg_loc(agg,i,averages)
-
-    averages = avg
-    points_x, points_y, points_loc =px,py,pl
-
-    cluster_grid = np.zeros(shape = (15,15,3))
-    cluster_grid_scale = np.zeros(shape = (15,15,3))
-    for val in range(1,178):
-        x,y = dataGrid.coord(val)
-        #cluster = agg.labels_[val-1]
-        cluster = labels_prev[val-1]
-        similarity = similarity_vector(dataGrid.data_at_loc(val)[:,1],averages[cluster])
-
-        #similarity = math.pow(similarity,10)
-        cluster_grid_scale[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,similarity])
-        cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
-
-    return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc
-
-
-start = 176
-end = 177
+start = 3
+end = 5
 cluster_range = range(start,end+1)
 
 fig = plt.figure()
 ax = fig.subplots(nrows=2, ncols=len(cluster_range))
 
+list_cg, list_px, list_py, list_pl = get_cluster_grids(end)
+
 for n,i in enumerate(cluster_range):
-    cg, cgs, px, py, pl = get_cluster_grids(i)
-    px = [15-x for x in px]
-    py = [y-1 for y in py]
-    ax[0,n].imshow(cg)
+    px = [15-x for x in list_px[i-3]]
+    py = [y-1 for y in list_py[i-3]]
+    ax[0,n].imshow(list_cg[i-3])
     ax[0,n].invert_yaxis()
     ax[0,n].axis("off")
     ax[0,n].title.set_text(i)
-    '''
-    ax[1,n].imshow(cgs)
-    ax[1,n].scatter(px,py,s=3,c='black')
-    ax[1,n].invert_yaxis()
-    ax[1,n].axis("off")
-
-    ax[2,n].imshow(cgs)
-    ax[2,n].scatter(px,py,s=3,c='black')
-    ax[2,n].invert_yaxis()
-    ax[2,n].axis("off")
-    for i,txt in enumerate(pl):
-        ax[2,n].annotate(txt,(px[i],py[i]))
-    '''
 
 fig.tight_layout()
 k=.01

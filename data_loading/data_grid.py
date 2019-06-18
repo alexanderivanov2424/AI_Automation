@@ -23,6 +23,7 @@ class DataGrid:
         #regex to parse grid location from file
         pattern = re.compile(regex, re.VERBOSE)
 
+        print("Loading Data from: " + path)
         #load csv files into dictionary
         self.data ={}
         for file in files:
@@ -30,10 +31,15 @@ class DataGrid:
             if(match == None):
                 continue
             num = int(match.group("num"))
+            print("\t:: " + str(num) + "\t| " + file)
             self.data[num] = np.array(pd.read_csv(path + file,header=None))
 
         #set of key locations
         self.grid_locations = list(self.data.keys())
+
+        print("Locations: " + str(self.grid_locations.sort()))
+        print("Data Loaded Succesfully")
+
         #number of grid locations
         self.size = len(self.data.keys())
         #length of each spectra vector
