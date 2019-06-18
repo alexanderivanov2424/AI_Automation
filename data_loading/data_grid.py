@@ -17,7 +17,7 @@ class DataGrid:
     # path - where data is loaded from
     # regex - how to parse the grid locations from the file names
     # range - [optional] specific range on the x-axis to consider
-    def __init__(self, path, regex, range=None):
+    def __init__(self, path, regex, range=None, verbose=False):
         files = os.listdir(path)
 
         #regex to parse grid location from file
@@ -31,13 +31,14 @@ class DataGrid:
             if(match == None):
                 continue
             num = int(match.group("num"))
-            print("\t:: " + str(num) + "\t| " + file)
+            if verbose:
+                print("\t:: " + str(num) + "\t| " + file)
             self.data[num] = np.array(pd.read_csv(path + file,header=None))
 
         #set of key locations
         self.grid_locations = list(self.data.keys())
-
-        print("Locations: " + str(self.grid_locations.sort()))
+        if verbose:
+            print("Locations: " + str(self.grid_locations.sort()))
         print("Data Loaded Succesfully")
 
         #number of grid locations
