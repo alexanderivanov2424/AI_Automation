@@ -6,8 +6,6 @@ The produced visual is saved as a PNG file.
 
 Cluster labels and similarity to cluster center is computed
 for all grid locations and saved to an excel file.
-
-Alexander Ivanov
 '''
 
 '''
