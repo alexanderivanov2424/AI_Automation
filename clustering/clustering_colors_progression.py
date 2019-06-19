@@ -3,7 +3,6 @@ from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_
 
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import KMeans
-from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
@@ -12,22 +11,15 @@ import math
 import warnings
 warnings.simplefilter("ignore")
 
-
-
-#folder with data files
-
+# LOAD DATA
 dataGrid = DataGrid_TiNiSn_500C()
 
-
+"""cosine similarity of two vectors"""
 def similarity_vector(A,B):
-    pA, _ = find_peaks(A)
-    pB, _ = find_peaks(B)
-    p = np.append(pA,pB,axis=0)
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
-    #peaks = np.dot(A[p],B[p])/np.linalg.norm(A[p])/np.linalg.norm(B[p])
     return cosine
 
-#cosine similarity function using two grid positions
+"""cosine similarity function using two grid positions"""
 def similarity(d1,d2):
     a = dataGrid.data[d1][:,1]
     b = dataGrid.data[d2][:,1]
@@ -45,8 +37,11 @@ for x in range(size):
         D[x,y] = 1 - similarity(x+1,y+1)
 
 
-def get_averages(agg):
-    grouped_data = [[] for x in range(i)]
+def get_averages(agg,clusters):
+    """
+    Get the everage values for each cluster
+    """
+    grouped_data = [[] for x in range(clusters)]
     for loc,val in enumerate(agg.labels_):
         grouped_data[val].append(dataGrid.data_at_loc(loc+1)[:,1])
 
@@ -54,6 +49,9 @@ def get_averages(agg):
     return averages
 
 def get_avg_loc(agg,clusters,averages):
+    """
+    Get the locations of the average points in the clustering
+    """
     points_x = [-1 for x in range(clusters)]
     points_y = [-1 for x in range(clusters)]
     points_loc = [-1 for x in range(clusters)]
@@ -78,6 +76,11 @@ def get_avg_loc(agg,clusters,averages):
     return points_x, points_y, points_loc
 
 def update_lists(hue,points,labels,labels_new,k1,k2,parent):
+    """
+    Figure out what order k1, k2 need to replace the parent.
+    Based on this order compute the new hues and update "hue"
+    Based on this order compute the new labels and update "labels"
+    """
     i = points.index(parent)
     prev = points[(i-1) % len(points)]
     next = points[(i+1) % len(points)]
@@ -134,11 +137,21 @@ def update_lists(hue,points,labels,labels_new,k1,k2,parent):
                     labels[val-1] += 1
                 labels[val-1] = (labels[val-1])% len(points)
 
-
-#calculate i clusters and create grid visuals and center points
+#the base number of clusters where the colors are initialized with equal spread
+#does not work with 2 or 1 because of update_lists()
 base_clusters = 3
 def get_cluster_grids(i):
-    #generate all clustering up to desired amount
+    """
+    generate all clustering up to desired amount
+    returns visuals in list of arrays were each index is for a cluster
+    """
+
+    #save intermitent data
+    list_cluster_grid = []
+    list_px = []
+    list_py = []
+    list_pl = []
+
 
     hues = [float(float(x)/float(base_clusters)) for x in range(1,base_clusters+1)]
 
@@ -147,77 +160,57 @@ def get_cluster_grids(i):
     for clusters in range(base_clusters,i+1):
         agg = AgglomerativeClustering(n_clusters=clusters, affinity='precomputed',linkage='complete')
         agg.fit(D)
-        avg = get_averages(agg)
+        avg = get_averages(agg,clusters)
         px,py,pl = get_avg_loc(agg,clusters,avg)
-
         if clusters == base_clusters:
             pl_prev = pl
             dict = {}
             for l,p in enumerate(pl):
                 dict[agg.labels_[p-1]] = l
             labels_prev = [dict[agg.labels_[val]] for val in range(0,177)]
-            continue
-        new_centers = list(set(pl).difference(set(pl_prev)))
-        k1 = new_centers[0]
-        if len(new_centers) == 2:
-            k2 = new_centers[1]
         else:
-            k2 = pl_prev[labels_prev[k1-1]]
-        parent = pl_prev[labels_prev[k1-1]]
+            new_centers = list(set(pl).difference(set(pl_prev)))
+            k1 = new_centers[0]
+            if len(new_centers) == 2:
+                k2 = new_centers[1]
+            else:
+                k2 = pl_prev[labels_prev[k1-1]]
+            parent = pl_prev[labels_prev[k1-1]]
 
-        update_lists(hues,pl_prev,labels_prev,agg.labels_,k1,k2,parent)
+            update_lists(hues,pl_prev,labels_prev,agg.labels_,k1,k2,parent)
+
+        cluster_grid = np.zeros(shape = (15,15,3))
+        for val in range(1,178):
+            x,y = dataGrid.coord(val)
+            cluster = labels_prev[val-1]
+            cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
+
+        list_cluster_grid.append(cluster_grid)
+        list_px.append(px)
+        list_py.append(py)
+        list_pl.append(pl)
+    return list_cluster_grid, list_px, list_py, list_pl
 
 
-    averages = get_averages(agg)
-    points_x, points_y, points_loc = get_avg_loc(agg,i,averages)
 
-    cluster_grid = np.zeros(shape = (15,15,3))
-    cluster_grid_scale = np.zeros(shape = (15,15,3))
-    for val in range(1,178):
-        x,y = dataGrid.coord(val)
-        #cluster = agg.labels_[val-1]
-        cluster = labels_prev[val-1]
-        similarity = similarity_vector(dataGrid.data_at_loc(val)[:,1],averages[cluster])
+fig = plt.figure()
+ax = fig.subplots(nrows=2, ncols=1)
 
-        #similarity = math.pow(similarity,10)
-        cluster_grid_scale[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,similarity])
-        cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
+list_cg, list_px, list_py, list_pl = get_cluster_grids(177)
 
-    return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc
+fig.tight_layout()
 
-
-start = 177
-end = 177
-cluster_range = range(start,end+1)
-
-fig = plt.figure(figsize=(5,10))
-ax = fig.subplots(nrows=3, ncols=1)
-
-for i in cluster_range:
-    cg, cgs, px, py, pl = get_cluster_grids(i)
-    px = [15-x for x in px]
-    py = [y-1 for y in py]
-    ax[0].imshow(cg)
+for i in range(3,178):
+    px = [15-x for x in list_px[i-3]]
+    py = [y-1 for y in list_py[i-3]]
+    ax[0].imshow(list_cg[i-3])
     ax[0].invert_yaxis()
     ax[0].axis("off")
     ax[0].title.set_text(i)
-
-    ax[1].imshow(cgs)
-    ax[1].scatter(px,py,s=3,c='black')
-    ax[1].invert_yaxis()
-    ax[1].axis("off")
-
-    ax[2].imshow(cgs)
-    ax[2].scatter(px,py,s=3,c='black')
-    ax[2].invert_yaxis()
-    ax[2].axis("off")
-    for i,txt in enumerate(pl):
-        ax[2].annotate(txt,(px[i],py[i]))
-    fig.tight_layout()
     plt.draw()
-    plt.pause(.001)
+    plt.pause(.5)
 
-fig.tight_layout()
+
 k=.01
 plt.subplots_adjust(left=k,right=(1-k),bottom=k,top=(1-k),wspace=k,hspace=k)
 #plt.savefig("/home/sasha/Desktop/cluster_images/clustering-" + str(min) + "-" + str(max) + ".png")

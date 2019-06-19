@@ -16,9 +16,6 @@ dataGrid = DataGrid_TiNiSn_500C()
 
 """cosine similarity of two vectors"""
 def similarity_vector(A,B):
-    pA, _ = find_peaks(A)
-    pB, _ = find_peaks(B)
-    p = np.append(pA,pB,axis=0)
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
     return cosine
 

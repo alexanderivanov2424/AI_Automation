@@ -13,8 +13,6 @@ import warnings
 warnings.simplefilter("ignore")
 
 
-#folder with data files
-
 dataGrid = DataGrid_TiNiSn_500C()
 
 
@@ -129,7 +127,7 @@ def update_lists(hue,points,labels,labels_new,k1,k2,parent):
 
     pair_sim = [similarity(i,i+1)-.94 for i in range(1,177)]
     sum_sim = float(sum(pair_sim))
-    return [.5*sum(pair_sim[:k])/ sum_sim for k in range(len(hue))]
+    return [.66*sum(pair_sim[:k])/ sum_sim for k in range(len(hue))]
 
 
 #calculate i clusters and create grid visuals and center points
