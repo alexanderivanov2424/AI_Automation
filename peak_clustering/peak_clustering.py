@@ -1,5 +1,5 @@
 
-from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
+from data_loading.data_grid_TiNiSn import DataGrid
 
 
 
@@ -26,19 +26,12 @@ args = parser.parse_args()
 
 #folder with data files
 
-dataGrid = DataGrid_TiNiSn_500C()
+data_dir = "/home/sasha/Desktop/saveTest/"
+regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
+dataGrid = DataGrid(data_dir,regex)
 
 ##################################
 # LOAD PEAK DATA
-data_dir = "/home/sasha/Desktop/saveTest/"
-files = os.listdir(data_dir)
-
-peak_lists = [[] for x in range(177)]
-
-for f in files:
-    file = os.path.join(data_dir,f)
-    num = int(file.split('_')[5]) -1
-    peak_lists[num] = np.asarray(pd.read_csv(file,header=None)[1])[1:]
 
 '''
 k1 = 97
@@ -150,6 +143,6 @@ plt.title(C)
 
 #k=.01
 #plt.subplots_adjust(left=k,right=(1-k),bottom=k,top=(1-k),wspace=k,hspace=k)
-plt.savefig("/home/sasha/Desktop/Peak_Clustering_Images/clust-" + str(delta) + "-" + str(C) + ".png")
-#plt.show()
+#plt.savefig("/home/sasha/Desktop/Peak_Clustering_Images/clust-" + str(delta) + "-" + str(C) + ".png")
+plt.show()
 plt.close()
