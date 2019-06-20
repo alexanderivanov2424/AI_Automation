@@ -29,11 +29,11 @@ data_path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
 dataGrid = DataGrid(data_path,regex_500)
 
 # grid locations to plot
-locations = [32,33,34,55]
+locations = [30,35,138,168]
 
 #how much to shift each grid location vertically
 #(makes it easier to see peaks)
-shifts = []
+shifts = [0,100,200,300]
 
 
 def similarity_vector(A,B):
