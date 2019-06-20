@@ -18,7 +18,7 @@ dataGrid = DataGrid_TiNiSn_500C()
 def similarity_vector(A,B):
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
     #return math.sqrt(np.sum(np.square((A-B))))/np.linalg.norm(A)/np.linalg.norm(B)
-    return np.sum(np.abs(A-B))
+    #return np.sum(np.abs(A-B))
     return cosine
 
 """cosine similarity function using two grid positions"""
