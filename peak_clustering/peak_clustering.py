@@ -1,5 +1,5 @@
 
-from data_loading.data_grid_TiNiSn import DataGrid
+from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
 
 
@@ -26,13 +26,19 @@ args = parser.parse_args()
 
 #folder with data files
 
+dataGrid = DataGrid_TiNiSn_500C()
+
 data_dir = "/home/sasha/Desktop/saveTest/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
-dataGrid = DataGrid(data_dir,regex)
+peakGrid = DataGrid(data_dir,regex)
+
+# dataGrid.data[0][1:,1] is peak locations
+
+# dataGrid.data[0][1:,3] is peak intensity
+
 
 ##################################
 # LOAD PEAK DATA
-
 '''
 k1 = 97
 k2 = 134
@@ -57,35 +63,28 @@ plt.show()
 
 
 def similarity_vector(A,B):
-    pA, _ = find_peaks(A)
-    pB, _ = find_peaks(B)
-    p = np.append(pA,pB,axis=0)
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
-    peaks = np.dot(A[p],B[p])/np.linalg.norm(A[p])/np.linalg.norm(B[p])
     return cosine
 
 delta = args.delta #.05
-
-#cosine similarity function using two grid positions
+size = 50
 def similarity(d1,d2):
-    '''
-    a = dataGrid.data[d1][:,1]
-    b = dataGrid.data[d2][:,1]
-    return similarity_vector(a,b)
-    '''
-    #return 100 - abs(len(peak_lists[d1-1]) - len(peak_lists[d2-1]))
 
     differences = 0
-    for p in peak_lists[d1-1]:
+    for i,p in enumerate(peakGrid.data_at_loc(d1)[1:,1]):
+        if float(peakGrid.data_at_loc(d1)[i+1,3]) < size:
+            continue
         found = False
-        for t in peak_lists[d2-1]:
+        for t in peakGrid.data_at_loc(d2)[1:,1]:
             if abs(float(t)-float(p)) < delta:
                 found = True
         if not found:
             differences += 1
-    for p in peak_lists[d2-1]:
+    for i,p in enumerate(peakGrid.data_at_loc(d2)[1:,1]):
+        if float(peakGrid.data_at_loc(d2)[i+1,3]) < size:
+            continue
         found = False
-        for t in peak_lists[d1-1]:
+        for t in peakGrid.data_at_loc(d1)[1:,1]:
             if abs(float(t)-float(p)) < delta:
                 found = True
         if not found:
@@ -93,18 +92,13 @@ def similarity(d1,d2):
     return differences/4
 
 
-points = [[6,1]]
-for val in range(2,178):
-    x,y = dataGrid.coord(val)
-    points = np.append(points,[[x,y]],axis=0)
+size = dataGrid.size
 
-size = len(points)
-'''
 K_Matrix = np.zeros(shape=(size,size))
 for x in range(1,size+1):
     for N in dataGrid.neighbors(x).values():
         K_Matrix[x-1,N-1] = 1
-'''
+
 
 
 D = np.ones(shape=(size,size))
@@ -135,7 +129,7 @@ def get_cluster_grids(i):
 C = len(np.unique(D))
 print(C)
 
-cg = get_cluster_grids(C)
+cg = get_cluster_grids(10)
 plt.imshow(cg)
 plt.gca().invert_yaxis()
 plt.axis("off")

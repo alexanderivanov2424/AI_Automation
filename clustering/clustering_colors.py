@@ -25,6 +25,8 @@ def similarity_vector(A,B):
 def similarity(d1,d2):
     a = dataGrid.data[d1][:,1]
     b = dataGrid.data[d2][:,1]
+    #return np.mean(np.abs(a-b))
+    #return math.sqrt(np.sum(np.square(a-b)))
     return similarity_vector(a,b)
 
 points = [[6,1]]
@@ -36,7 +38,7 @@ size = len(points)
 D = np.ones(shape=(size,size))
 for x in range(size):
     for y in range(size):
-        D[x,y] = 1 - similarity(x+1,y+1)
+        D[x,y] = 1-similarity(x+1,y+1)
 
 
 def get_averages(agg,clusters):
