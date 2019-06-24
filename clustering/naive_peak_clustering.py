@@ -123,7 +123,6 @@ def get_cluster_grids(i):
         cluster = agg.labels_[val-1]
         cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
 
-
     return cluster_grid
 
 C = len(np.unique(D))
