@@ -11,30 +11,28 @@ import math
 
 
 
-
+"""
+Load Data and Peak Data
+"""
 dataGrid = DataGrid_TiNiSn_500C()
 
-data_dir = "/home/sasha/Desktop/saveTest/"
+data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.05/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
 peakGrid = DataGrid(data_dir,regex)
 
-start = 140
-stop = 152
-
-size = 10
-G = np.zeros(shape=((stop-start+1)*size,dataGrid.data_length))
-
-for l,i in enumerate(range(start,stop+1)):
-    G[l*size:(l+1)*size] = np.log(dataGrid.data_at_loc(i)[:,1]+100)
-#plt.imshow(G)
-#plt.show()
-
-
+"""
+Create a list of peaks in the form [x,y,p]
+"""
+SCALE = 100.
 peaks = []
 for k in peakGrid.data.keys():
     x,y = peakGrid.coord(k)
-    [peaks.append([x/100.,y/100.,float(p)]) for p in peakGrid.data[k][1:,1]]
+    [peaks.append([x/SCALE,y/SCALE,float(p)]) for p in peakGrid.data[k][1:,1]]
 
+
+"""
+Cluster the peaks into C clusters
+"""
 C = 57
 X = np.array(peaks)
 '''
@@ -45,7 +43,9 @@ clustering = SpectralClustering(n_clusters=C,
 clustering = AgglomerativeClustering(n_clusters=C,linkage='average').fit(X)
 
 
-
+"""
+Create a map of each grid location to a Vector of peaks in C dimensions
+"""
 M = np.zeros(shape=(peakGrid.dims[0],dataGrid.dims[1],C))
 
 i = 0
@@ -57,16 +57,11 @@ for k in peakGrid.data.keys():
         i+=1
 
     M[x-1,y-1] = V
-'''
-i = 0
-for k in dataGrid.data.keys():
-    plt.plot(dataGrid.data[k][:,0],dataGrid.data[k][:,1])
-    print(peakGrid.data[k][1:,1])
-    x,y = peakGrid.coord(k)
-    print(clustering.labels_[i:i+len(peakGrid.data[k])])
-    plt.show()
-'''
 
+
+"""
+Similarity function
+"""
 def similarity(d1,d2):
     x,y = peakGrid.coord(d1)
     a = M[x-1,y-1]
@@ -81,16 +76,27 @@ def similarity(d1,d2):
 
 size = peakGrid.size
 
+"""
+Connectivity Matrix
+"""
 K_Matrix = np.zeros(shape=(size,size))
 for x in range(1,size+1):
     for N in peakGrid.neighbors(x).values():
         K_Matrix[x-1,N-1] = 1
 
 
+"""
+Similarity Matrix
+"""
 D = np.ones(shape=(size,size))
 for x in range(size):
     for y in range(size):
         D[x,y] = similarity(x+1,y+1)
+
+
+"""
+Grid Clustering based on similarity matrix
+"""
 
 def get_cluster_grids(i):
     agg = AgglomerativeClustering(n_clusters=i,affinity='precomputed',linkage='complete')
@@ -106,6 +112,10 @@ def get_cluster_grids(i):
 
     return cluster_grid
 
+
+"""
+Plotting
+"""
 for i in range(3,15):
     cg = get_cluster_grids(i)
     plt.imshow(cg)
