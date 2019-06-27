@@ -16,6 +16,11 @@ import sys
 class DataGrid:
 
 
+    """
+    WARNING
+    RANGE ONLY WORKS FOR DATA WHERE FIRST COLUMN IS X-AXIS
+
+    """
     def __init__(self, path, regex, range=None, verbose=False):
         """
         Load data and initialize data grid
@@ -23,7 +28,7 @@ class DataGrid:
         # path - where data is loaded from
         # regex - how to parse the grid locations from the file names
         # range - [optional] specific range on the x-axis to consider
-        
+
         """
         files = os.listdir(path)
         #regex to parse grid location from file
@@ -43,7 +48,13 @@ class DataGrid:
             num = int(match.group("num"))
             if verbose:
                 print("\t:: " + str(num) + "\t| " + file)
-            self.data[num] = np.array(pd.read_csv(path + file,header=None))
+
+            data_array = np.array(pd.read_csv(path + file,header=None))
+            try:
+                data_array[0].astype(np.float)
+            except:
+                data_array = data_array[1:]
+            self.data[num] = data_array.astype(np.float)
 
         #set of key locations
         self.grid_locations = list(self.data.keys())
@@ -62,6 +73,7 @@ class DataGrid:
         #grid dimentions
         self.dims = (15,15)
 
+
         #range is of the form [min,max]
         self.range = range
         self.x_axis = self.data[self.grid_locations[0]][:,0]
@@ -69,7 +81,7 @@ class DataGrid:
         #indices for range start and end
         if self.range == None:
             self.min_index = 0
-            self.max_index = self.data_length
+            self.max_index = self.data_length+1
         else:
             self.min_index = next(i for i,v in enumerate(self.x_axis) if v >= self.range[0])
             self.max_index = next(i-1 for i,v in enumerate(self.x_axis) if v > self.range[1])
@@ -142,7 +154,7 @@ class DataGrid:
         if not self.in_grid(x,y):
             return None
         if inRange:
-            self.data[self.grid_num(x,y)][self.min_index:self.max_index,:]
+            return self.data[self.grid_num(x,y)][self.min_index:self.max_index,:]
         return self.data[self.grid_num(x,y)]
 
     def data_at_loc(self,d,inRange=False):

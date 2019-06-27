@@ -3,8 +3,12 @@
 from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 import matplotlib.pyplot as plt
 import matplotlib
-from sklearn.cluster import SpectralClustering
 
+
+from sklearn.cluster import Birch
+from sklearn.cluster import OPTICS
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import SpectralClustering
 from sklearn.cluster import AgglomerativeClustering
 import numpy as np
 import math
@@ -14,34 +18,33 @@ import math
 """
 Load Data and Peak Data
 """
-dataGrid = DataGrid_TiNiSn_500C()
+dataGrid = DataGrid_TiNiSn_500C(range=[1,4.5])
 
-data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.05/"
+data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.5/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
 peakGrid = DataGrid(data_dir,regex)
 
 """
 Create a list of peaks in the form [x,y,p]
 """
-SCALE = 100.
+SCALE = 100
+def to_point(x,y,p):
+    return [(x-1)/15.,(y-1)/15.,SCALE*float(p)/5]
+
 peaks = []
 for k in peakGrid.data.keys():
     x,y = peakGrid.coord(k)
-    [peaks.append([x/SCALE,y/SCALE,float(p)]) for p in peakGrid.data[k][1:,1]]
+    [peaks.append(to_point(x,y,p)) for p in peakGrid.data_at_loc(k)[:,1]]
 
 
 """
 Cluster the peaks into C clusters
 """
-C = 57
 X = np.array(peaks)
-'''
-clustering = SpectralClustering(n_clusters=C,
-        assign_labels="discretize",
-        random_state=0).fit(X)
-'''
-clustering = AgglomerativeClustering(n_clusters=C,linkage='average').fit(X)
 
+clustering = DBSCAN(eps=0.25, min_samples=10).fit(X)
+
+C = len(set(clustering.labels_).difference(set([-1])))
 
 """
 Create a map of each grid location to a Vector of peaks in C dimensions
@@ -52,11 +55,9 @@ i = 0
 for k in peakGrid.data.keys():
     x,y = peakGrid.coord(k)
     V = np.zeros(shape=C)
-    for peak_int in peakGrid.data[k][1:,3]:
-        V[clustering.labels_[i]] = peak_int
-        i+=1
-
-    M[x-1,y-1] = V
+    for i,p in enumerate(peakGrid.data_at_loc(k)[:,1]):
+        loc = clustering.labels_[peaks.index(to_point(x,y,p))]
+        M[x-1,y-1,loc] = peakGrid.data_at_loc(k)[i,3]
 
 
 """
@@ -67,8 +68,22 @@ def similarity(d1,d2):
     a = M[x-1,y-1]
     x,y = peakGrid.coord(d2)
     b = M[x-1,y-1]
-    a = np.log(a+1)
-    b = np.log(b+1)
+    #return abs(len(a[a!=0]) - len(b[b!=0]))
+    """
+    def dif(n,m):
+        if n == 0:
+            if m == 0:
+                return abs(n - m)
+            else:
+                return abs(n-m)**5
+        else:
+            if m == 0:
+                return abs(n-m)**5
+            else:
+                return abs(n - m)
+    return np.sum([dif(a[i],b[i]) for i in range(len(a))])
+    """
+
     return np.mean(np.abs(a-b))
     #return math.sqrt(np.sum(np.square(a-b)))
     #return np.dot(a,b)/np.linalg.norm(a)/np.linalg.norm(b)
@@ -99,10 +114,9 @@ Grid Clustering based on similarity matrix
 """
 
 def get_cluster_grids(i):
-    agg = AgglomerativeClustering(n_clusters=i,affinity='precomputed',linkage='complete')
-    agg.fit(D)
-
+    agg = AgglomerativeClustering(n_clusters=i,affinity='precomputed',linkage='complete').fit(D)
     hues = [float(float(x)/float(i)) for x in range(1,i+1)]
+
 
     cluster_grid = np.zeros(shape = (15,15,3))
     for val in range(1,178):
@@ -110,19 +124,64 @@ def get_cluster_grids(i):
         cluster = agg.labels_[val-1]
         cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
 
-    return cluster_grid
+
+    peak_max_counts = np.zeros(i)
+    for val in range(1,178):
+        cluster = agg.labels_[val-1]
+        peak_max_counts[cluster] = max(peak_max_counts[cluster],len(peakGrid.data_at_loc(val,True)[:,1]))
+
+    peak_grid = np.zeros(shape =(15,15,3))
+    for val in range(1,178):
+        x,y = dataGrid.coord(val)
+        cluster = agg.labels_[val-1]
+        k = len(peakGrid.data_at_loc(val,True)[:,1])/peak_max_counts[cluster]
+        peak_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([1,1,k])
+
+
+
+    width_max_counts = np.zeros(i)
+    for val in range(1,178):
+        cluster = agg.labels_[val-1]
+        width_max_counts[cluster] = max(width_max_counts[cluster],max(peakGrid.data_at_loc(val,True)[:,2].astype(np.float)))
+
+    width_grid = np.zeros(shape =(15,15,3))
+    for val in range(1,178):
+        x,y = dataGrid.coord(val)
+        cluster = agg.labels_[val-1]
+        k = max(peakGrid.data_at_loc(val,True)[:,2].astype(np.float))/width_max_counts[cluster]
+        width_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([1,1,k])
+
+    return cluster_grid, peak_grid, width_grid
 
 
 """
 Plotting
 """
-for i in range(3,15):
-    cg = get_cluster_grids(i)
-    plt.imshow(cg)
+for i in range(10,30):
+
+    fig = plt.figure(figsize=(15,8))
+    cg,pg,wg = get_cluster_grids(i)
+
+    ax1 = fig.add_subplot(1,1,1)
+    ax1.imshow(cg)
     for j in range(dataGrid.size):
         x,y = dataGrid.coord(j+1)
-        plt.annotate(str(j+1),(15-x-.4,y-1-.4),size=6)
-    plt.gca().invert_yaxis()
-    plt.axis("off")
-    plt.title(i)
+        ax1.annotate(str(j+1),(15-x-.4,y-1-.4),size=6)
+    ax1.axis("off")
+    ax1.invert_yaxis()
+    ax1.title.set_text(i)
+
+    """
+    ax2 = fig.add_subplot(1,3,2)
+    ax2.imshow(pg)
+    ax2.axis("off")
+    ax2.invert_yaxis()
+    ax2.title.set_text(i)
+
+    ax2 = fig.add_subplot(1,3,3)
+    ax2.imshow(wg)
+    ax2.axis("off")
+    ax2.invert_yaxis()
+    ax2.title.set_text(i)
+    """
     plt.show()
