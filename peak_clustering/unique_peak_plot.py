@@ -1,5 +1,18 @@
 
 
+from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
+import matplotlib.pyplot as plt
+import matplotlib
+
+from sklearn.cluster import DBSCAN
+
+from sklearn.decomposition import PCA
+
+
+import numpy as np
+import math
+import random
+
 
 
 """
