@@ -106,7 +106,7 @@ def get_cluster_grids(i):
     for val in range(1,178):
         x,y = dataGrid.coord(val)
         cluster = agg.labels_[val-1]
-        k = max(peakGrid.data_at_loc(val)[:,2].astype(np.float))/Width_max[cluster]
+        k = max(peakGrid.data_at_loc(val)[:,2].astype(np.float))
         width_grid[y-1][15-x] = k
 
     return cluster_grid,peak_grid,width_grid
