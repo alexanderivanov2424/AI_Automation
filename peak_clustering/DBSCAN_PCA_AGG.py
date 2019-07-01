@@ -4,8 +4,6 @@ from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGr
 import matplotlib.pyplot as plt
 import matplotlib
 
-from scipy.signal import find_peaks
-
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import AgglomerativeClustering
 
