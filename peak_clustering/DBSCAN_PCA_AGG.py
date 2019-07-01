@@ -14,6 +14,8 @@ from sklearn.decomposition import PCA
 
 import numpy as np
 import math
+import imageio
+import os
 
 
 
@@ -151,6 +153,7 @@ def get_cluster_grids(i):
 """
 Plotting
 """
+video = []
 Y_peaks = []
 Y_widths = []
 fig = plt.figure(figsize=(15,8))
@@ -189,9 +192,19 @@ for i in range(1,177):
     ax4.set_xticks(np.arange(0, i, step=5))
     ax4.legend()
 
-    if i > 20:
-        plt.show()
-    else:
-        plt.draw()
-        plt.pause(.0001)
+
+    fig.canvas.draw()
+    plt.draw()
+    plt.pause(.00001)
+    frame = np.fromstring(fig.canvas.tostring_rgb(), dtype='uint8')
+    w,h = fig.canvas.get_width_height()
+    frame = np.reshape(frame,(h,w,3))
+    video.append(frame)
     fig.clf()
+
+video_path = "/home/sasha/Desktop/"
+
+if not os.path.exists(video_path):
+    os.makedirs(video_path)
+imageio.mimwrite(os.path.join(video_path, "penalty" +".mp4"), video, fps=2)
+print("Video saved to " + video_path)
