@@ -4,6 +4,8 @@ from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGr
 import matplotlib.pyplot as plt
 import matplotlib
 
+from scipy.signal import find_peaks
+
 from sklearn.cluster import DBSCAN
 from sklearn.cluster import AgglomerativeClustering
 
@@ -23,6 +25,7 @@ dataGrid = DataGrid_TiNiSn_500C()
 data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.5/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
 peakGrid = DataGrid(data_dir,regex)
+
 
 """
 Create a list of peaks in the form [x,y,p]
@@ -104,6 +107,9 @@ def get_cluster_grids(i):
     min_over_locations = lambda locs : np.nanmin([peak_widths[L-1] for L in locs])
     Width_min = [min_over_locations(np.where(agg.labels_==L)[0] + 1) for L in range(i)]
 
+    """
+    Calculate penalty scores for each cluster
+    """
     def peak_score(locs,C):
         if Peak_max[C] == Peak_min[C]:
             return 0
@@ -116,6 +122,9 @@ def get_cluster_grids(i):
         return sum([(peak_widths[L-1] - Width_min[C])/(Width_max[C]- Width_min[C]) for L in locs])
     cluster_width_scores = [width_score(np.where(agg.labels_==C)[0] + 1,C) for C in range(i)]
 
+    """
+    Creating color grids weighted by penalty score
+    """
     peak_grid = np.zeros(shape =(15,15,3))
     for val in range(1,178):
         x,y = dataGrid.coord(val)
@@ -180,7 +189,7 @@ for i in range(1,177):
     ax4.set_xticks(np.arange(0, i, step=5))
     ax4.legend()
 
-    if i > 175:
+    if i > 20:
         plt.show()
     else:
         plt.draw()
