@@ -197,5 +197,5 @@ def csv_to_dict(path,file_name):
     """
     with open(path + file_name + ".csv") as csv_file:
         reader = csv.reader(csv_file)
-        dict = dict(reader)
-        return dict
+        d = dict(reader)
+        return d

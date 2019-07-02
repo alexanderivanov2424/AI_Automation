@@ -13,6 +13,13 @@ from sklearn.cluster import AgglomerativeClustering
 import numpy as np
 import math
 
+"""
+################################
+Perform clustering using peak based dimension reduction and then L1 similarity
+in the agglomerative clustering algorithm.
+################################
+
+"""
 
 
 """
@@ -177,5 +184,5 @@ for i in range(10,30):
     ax2.invert_yaxis()
     ax2.title.set_text(i)
     """
-    
+
     plt.show()
