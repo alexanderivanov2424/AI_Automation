@@ -20,7 +20,7 @@ regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
 peakGrid = DataGrid(data_dir,regex)
 
 
-save_path = "/home/sasha/Desktop/"
+save_path = "/home/sasha/Desktop/python/peak_error/"
 
 mistakes = csv_to_dict(save_path,"peak_errors")
 

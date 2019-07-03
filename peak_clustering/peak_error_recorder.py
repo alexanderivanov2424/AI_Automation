@@ -20,8 +20,7 @@ regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
 peakGrid = DataGrid(data_dir,regex)
 
 
-save_path = "/home/sasha/Desktop/peak_errors.csv"
-
+save_path = "/home/sasha/Desktop/python/peak_error/peak_errors.csv"
 
 
 def selectPeak(event):
