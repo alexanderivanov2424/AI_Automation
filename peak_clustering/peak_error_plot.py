@@ -25,13 +25,24 @@ save_path = "/home/sasha/Desktop/"
 mistakes = csv_to_dict(save_path,"peak_errors")
 
 
+def smooth(list,k):
+    smooth = []
+    for i in range(len(list)):
+        a = max(i-int(k/2),0)
+        b = min(i+int(k/2),len(list)-1)
+        smooth.append(sum(list[a:b+1])/(b-a))
+    return smooth
 
+smooth_stack = lambda l,k,n : smooth(l,k) if n == 1 else smooth(smooth_stack(l,k,n-1),k)
 
-for grid_location in peakGrid.data.keys():
+for grid_location in range(172,dataGrid.size+1):
     fig = plt.figure(figsize =(17,9))
     mistakes[grid_location] = []
     X = dataGrid.data_at_loc(grid_location)[:,0]
     Y = dataGrid.data_at_loc(grid_location)[:,1]
+
+    Slope = [(Y[i]-Y[i+1])/(X[i] - X[i+1])/100 for i in range(len(X)-1)]
+
 
     for peak_x in peakGrid.data_at_loc(grid_location)[:,1]:
         i = (np.abs(X - peak_x)).argmin()
@@ -40,4 +51,7 @@ for grid_location in peakGrid.data.keys():
     for loc in eval(mistakes[str(grid_location)]):
         plt.plot([X[loc]],[Y[loc]],'o',color='red')
     plt.plot(X,Y,color='blue')
+    plt.plot(X[:-1],Slope,color='green')
+    plt.plot(X,[0 for i in X],color='black')
+    plt.title(grid_location)
     plt.show()

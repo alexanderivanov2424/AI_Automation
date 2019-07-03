@@ -60,19 +60,20 @@ next = False
 def nearest_index(x):
     return (np.abs(X - x)).argmin()
 
-for grid_location in peakGrid.data.keys():
+for grid_location in range(1,dataGrid.size+1):
     mistakes[grid_location] = []
     X = dataGrid.data_at_loc(grid_location)[:,0]
     Y = dataGrid.data_at_loc(grid_location)[:,1]
     next = False
     while not next:
         plt.cla()
+        plt.title(str(grid_location))
+        plt.plot(X,Y,color='blue')
         for peak_x in peakGrid.data_at_loc(grid_location)[:,1]:
             i = (np.abs(X - peak_x)).argmin()
             plt.plot([X[i]],[Y[i]],"x",color='black')
         for loc in mistakes[grid_location]:
             plt.plot([X[loc]],[Y[loc]],'x',color='red')
-        plt.plot(X,Y,color='blue')
         plt.plot([X[cur]],[Y[cur]],"x",color='red')
         plt.draw()
         plt.pause(.1)
