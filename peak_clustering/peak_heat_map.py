@@ -28,6 +28,6 @@ im = np.array(lst)
 im_log = np.log(im + 1)
 im_sqrt = np.sqrt(im)
 
-plt.imshow(im_sqrt)
+plt.imshow(im_log)
 plt.gca().invert_yaxis()
 plt.show()
