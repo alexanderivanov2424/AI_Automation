@@ -78,16 +78,7 @@ print("Dimension after PCA:",len(pca[0]))
 def get_cluster_grids(i):
     agg = AgglomerativeClustering(n_clusters=i).fit(pca)
     #i = max(agg.labels_)+1
-
     hues = [float(float(x)/float(i)) for x in range(1,i+1)]
-
-    cluster_grid = np.zeros(shape = (15,15,3))
-    for val in range(1,178):
-        x,y = dataGrid.coord(val)
-        cluster = agg.labels_[val-1]
-        if cluster == -1:
-            continue
-        cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
 
     """
     Find max peak count/ max peak width for each cluster
@@ -134,7 +125,10 @@ def get_cluster_grids(i):
             k = 0
         else:
             k = (peak_counts[val-1] - Peak_min[cluster])/(Peak_max[cluster]- Peak_min[cluster])
-        peak_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1-k/2])
+        if cluster_peak_scores[cluster] == 0:
+            peak_grid[y-1][15-x] = [1,1,1]
+        else:
+            peak_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1-k/2])
 
 
     width_grid = np.zeros(shape =(15,15,3))
@@ -146,6 +140,22 @@ def get_cluster_grids(i):
         else:
             k = (peak_widths[val-1] - Width_min[cluster])/(Width_max[cluster]- Width_min[cluster])
         width_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([1,1,1-k/2])
+
+    """
+    Create Cluster Grid Color Map (Clusters with 0 penalty are white)
+    """
+
+
+
+    cluster_grid = np.zeros(shape = (15,15,3))
+    for val in range(1,178):
+        x,y = dataGrid.coord(val)
+        cluster = agg.labels_[val-1]
+        if cluster == -1:
+            continue
+        cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
+
+
 
     return cluster_grid,peak_grid,width_grid,cluster_peak_scores,cluster_width_scores
 

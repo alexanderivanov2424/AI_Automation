@@ -20,10 +20,14 @@ dataGrid = DataGrid_TiNiSn_500C()
 # grid locations to plot
 locations = range(82,96+1)
 
-im = []
+lst = []
 for L in locations:
     for k in range(10):
-        im.append(dataGrid.data[L][:,1])
+        lst.append(dataGrid.data[L][:,1])
+im = np.array(lst)
+im_log = np.log(im + 1)
+im_sqrt = np.sqrt(im)
 
-plt.imshow(im)
+plt.imshow(im_sqrt)
+plt.gca().invert_yaxis()
 plt.show()
