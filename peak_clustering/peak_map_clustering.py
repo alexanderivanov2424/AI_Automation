@@ -19,7 +19,7 @@ import sys
 
 dataGrid = DataGrid_TiNiSn_500C()
 
-
+fig = plt.figure(figsize=(15,5))
 
 # grid locations to plot
 locations = range(82,96+1)
@@ -35,7 +35,8 @@ x.imshow(im)
 points = []
 for x in range(len(im)):
     for y in range(len(im[0])):
-        P = im[x,y]
+        P = im[x,y]/50
+        #P = math.sqrt(im[x,y])
         for i in range(int(P)):
             xr = random.random()
             yr = random.random()
@@ -50,14 +51,14 @@ plt.show()
 """
 
 X = np.array(points)
-#clustering = DBSCAN(eps=0.20, min_samples=15).fit(X)
+#clustering = DBSCAN(eps=0.16, min_samples=10).fit(X)
 #clustering.labels_ = GaussianMixture(n_components=10,covariance_type="tied").fit_predict(X)
-clustering = AgglomerativeClustering(n_clusters=5).fit(X)
+clustering = AgglomerativeClustering(n_clusters=5,linkage="single").fit(X)
 #num_clusters = len(set(clustering.labels_).difference(set([-1])))
 
 """
 for i in set(clustering.labels_):
-    if len(np.where(clustering.labels_ == i)[0]) < 0:
+    if len(np.where(clustering.labels_ == i)[0]) < 20:
         clustering.labels_[clustering.labels_==i] = -1
         for j in range(len(clustering.labels_)):
             if clustering.labels_[j] > i:
