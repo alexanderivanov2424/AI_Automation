@@ -1,4 +1,4 @@
-        '''
+'''
 Script for plotting spectra at several data values to
 visually compare differences.
 '''

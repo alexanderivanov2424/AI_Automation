@@ -35,7 +35,7 @@ x.imshow(im)
 points = []
 for x in range(len(im)):
     for y in range(len(im[0])):
-        P = im[x,y]/50
+        P = im[x,y]
         #P = math.sqrt(im[x,y])
         for i in range(int(P)):
             xr = random.random()
@@ -51,9 +51,9 @@ plt.show()
 """
 
 X = np.array(points)
-#clustering = DBSCAN(eps=0.16, min_samples=10).fit(X)
-#clustering.labels_ = GaussianMixture(n_components=10,covariance_type="tied").fit_predict(X)
-clustering = AgglomerativeClustering(n_clusters=5,linkage="single").fit(X)
+clustering = DBSCAN(eps=0.16, min_samples=10).fit(X)
+clustering.labels_ = GaussianMixture(n_components=10,covariance_type="tied").fit_predict(X)
+#clustering = AgglomerativeClustering(n_clusters=5,linkage="single").fit(X)
 #num_clusters = len(set(clustering.labels_).difference(set([-1])))
 
 """

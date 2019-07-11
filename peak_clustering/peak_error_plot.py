@@ -17,6 +17,9 @@ dataGrid = DataGrid_TiNiSn_500C()
 data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.5/"
 #data_dir = "/home/sasha/Desktop/peakTest/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
+
+data_dir = "/home/sasha/Desktop/peakTest/"
+regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkg_curveParams.csv"""
 peakGrid = DataGrid(data_dir,regex)
 
 

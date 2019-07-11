@@ -16,13 +16,32 @@ import math
 
 dataGrid = DataGrid_TiNiSn_500C()
 
+layers = []
+for i in range(len(dataGrid.row_sums)):
+    layers.append(range(dataGrid.row_starts[i],dataGrid.row_sums[i]+1))
+
+
 
 # grid locations to plot
+#locations = range(82,96+1)
+for locations in layers:
+    lst = []
+    for L in locations:
+            lst.append(dataGrid.data[L][120:160,1])
+    im = np.array(lst)
+    im_log = np.log(im + 1)
+    im_sqrt = np.sqrt(im)
+
+    plt.imshow(im_log)
+    plt.gca().invert_yaxis()
+    plt.show()
+    #plt.draw()
+    #plt.pause(.3)
 locations = range(82,96+1)
+
 
 lst = []
 for L in locations:
-    for k in range(10):
         lst.append(dataGrid.data[L][:,1])
 im = np.array(lst)
 im_log = np.log(im + 1)
