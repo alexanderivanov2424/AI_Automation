@@ -9,10 +9,12 @@ import math
 import imageio
 import os
 
+"""
+################################
+Plot the detected peaks as points on top of the peak heat map plot
 
-
-
-
+################################
+"""
 
 
 
@@ -21,12 +23,22 @@ Load Data and Peak Data
 """
 dataGrid = DataGrid_TiNiSn_500C()
 
-data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.5/"
-#data_dir = "/home/sasha/Desktop/peakTest/"
-regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
+#data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.5/"
+data_dir = "/home/sasha/Desktop/peakTest/"
+#regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
+regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkg_curveParams.csv"""
 peakGrid = DataGrid(data_dir,regex)
 
+
+
 ShowBBA = True
+isCurveParams = True
+
+#move values to right column when curve params used
+#easier that duplicating code below
+if isCurveParams:
+    for loc in range(1,dataGrid.size+1):
+        peakGrid.data[loc][:,1] = peakGrid.data[loc][:,2]
 
 if not ShowBBA:
     data_dir = "/home/sasha/Desktop/peakData_temp/"
@@ -58,7 +70,11 @@ for i in range(len(dataGrid.row_sums)):
 
 # grid locations to plot
 #locations = range(82,96+1)
+skip = 0
 for locations in layers:
+    skip += 1
+    if skip < 7:
+        continue
     lst = []
     for L in locations:
             lst.append(dataGrid.data[L][:,1])
