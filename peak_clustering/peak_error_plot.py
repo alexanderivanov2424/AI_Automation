@@ -18,6 +18,8 @@ data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.5/"
 #data_dir = "/home/sasha/Desktop/peakTest/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
 
+
+
 data_dir = "/home/sasha/Desktop/peakTest/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkg_curveParams.csv"""
 peakGrid = DataGrid(data_dir,regex)
@@ -38,7 +40,7 @@ for key in mistakes.keys():
     m_list = eval(mistakes[key])
     X = dataGrid.data_at_loc(loc)[:,0]
     Y = dataGrid.data_at_loc(loc)[:,1]
-    peaks = peakGrid.data_at_loc(loc)[:,1]
+    peaks = peakGrid.data_at_loc(loc)[:,2]
     dips,_ = find_peaks(max(Y) - Y)
     for m in m_list:
         if skip > 0:
