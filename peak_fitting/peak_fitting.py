@@ -52,7 +52,7 @@ for loc in range(1,dataGrid.size):
 
     plt.plot(X,Y,color="blue")
 
-    """
+
     for peak in BBA_peaks:
         p = np.argmin(np.abs(X-peak))
         plt.plot(X[p],Y[p],'o',color="black")
@@ -64,7 +64,7 @@ for loc in range(1,dataGrid.size):
         sig = .1
         range = np.linspace(cen-sig,cen+sig,60)
         plt.plot(range,[voigt_shift(x,*params) for x in range])
-    
+    """
 
     plt.show()
 

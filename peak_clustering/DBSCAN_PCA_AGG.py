@@ -29,12 +29,49 @@ Load Data and Peak Data
 """
 dataGrid = DataGrid_TiNiSn_500C()
 
+
+#######################################################
+
 data_dir = "/home/sasha/Desktop/TiNiSn_500C_PeakData_0.5/"
-#data_dir = "/home/sasha/Desktop/peakTest/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSu_peakParams.csv"""
 
 peakGrid = DataGrid(data_dir,regex)
 
+#TODO: BETTER WAY OF DOING THIS
+# WITHOUT EXCESSIVE LOADING
+
+peakMode = 3 #2,3
+# 1 - minblock peak fitting
+# 2 - BBA peak fitting
+# 3 - BBA curve fitting
+
+#move values to right column when curve params used
+#easier that duplicating code below
+if peakMode == 3:
+    #Reload peak grid with curve data
+    #NOTE: NOT EFFICIENT
+    data_dir = "/home/sasha/Desktop/peakTest/"
+    regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkg_curveParams.csv"""
+    peakGrid = DataGrid(data_dir,regex)
+    for loc in range(1,dataGrid.size+1):
+        peakGrid.data[loc][:,1] = peakGrid.data[loc][:,2]
+
+if peakMode == 1:
+    data_dir = "/home/sasha/Desktop/peakData_temp/"
+    for loc in range(1,dataGrid.size+1):
+        file = data_dir + str(loc) + ".txt"
+        try:
+            peaks = eval(open(file).read())
+        except:
+            print("Generating " + str(loc))
+            X = dataGrid.data_at_loc(loc)[:,0]
+            Y = dataGrid.data_at_loc(loc)[:,1]
+
+            #curve_params = fit_curves_to_data(X,Y)
+            peaks = get_peak_indices(X,Y)
+            open(file,'w+').write(str(peaks))
+        X = dataGrid.data_at_loc(loc)[:,0]
+        peakGrid.data[loc] = np.array([X[peaks],X[peaks]])
 
 """
 Create a list of peaks in the form [x,y,p]
@@ -79,7 +116,7 @@ PCA ON REDUCED DIFFRACTION DATA
 
 
 pca = PCA(n_components = 'mle',svd_solver='full').fit_transform(M)
-#pca = PCA(n_components = 2,svd_solver='full').fit_transform(M)
+#pca = PCA(n_components = 16 ,svd_solver='full').fit_transform(M)
 print("Dimension before PCA:",len(M[0]))
 print("Dimension after PCA:",len(pca[0]))
 
@@ -212,12 +249,13 @@ for i in range(1,177):
 
     fig.canvas.draw()
     plt.draw()
-    plt.pause(.00001)
+    plt.pause(1)
     frame = np.fromstring(fig.canvas.tostring_rgb(), dtype='uint8')
     w,h = fig.canvas.get_width_height()
     frame = np.reshape(frame,(h,w,3))
     video.append(frame)
     fig.clf()
+
 
 video_path = "/home/sasha/Desktop/"
 
