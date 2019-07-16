@@ -31,8 +31,8 @@ peakGrid = DataGrid(data_dir,regex)
 
 
 
-ShowBBA = True
-isCurveParams = True
+ShowBBA = False
+isCurveParams = False
 
 #move values to right column when curve params used
 #easier that duplicating code below
@@ -83,7 +83,7 @@ for locations in layers:
     im_sqrt = np.sqrt(im)
 
     SCALE = 20
-    plt.imshow(np.repeat(im,SCALE,axis=0))
+    plt.imshow(np.repeat(im_log,SCALE,axis=0))
     if ShowBBA:
         for i,L in enumerate(locations):
             X = dataGrid.data_at_loc(L)[:,0]
