@@ -13,9 +13,10 @@ import os
 import re
 import sys
 
+class DataNotFound:
+    pass
+
 class DataGrid:
-
-
     """
     WARNING
     RANGE ONLY WORKS FOR DATA WHERE FIRST COLUMN IS X-AXIS
@@ -56,13 +57,14 @@ class DataGrid:
                 data_array = data_array[1:]
             self.data[num] = data_array.astype(np.float)
 
+
         #set of key locations
         self.grid_locations = list(self.data.keys())
         if verbose:
             print("Locations: " + str(self.grid_locations.sort()))
 
         if len(self.grid_locations) < 177:
-            print("# WARNING: missing data files")
+            raise RuntimeError("Missing Data Files")
 
         print("Data Loaded Succesfully")
 
