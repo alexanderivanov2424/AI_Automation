@@ -45,6 +45,12 @@ win_diff_plot_list = []
 #values are tuple outputs of the respective mode methods
 cluster_dict = {}
 
+#Plot Labels
+cluster_title = "#"
+diff_title = "Diffraction Patterns"
+diff_X = "Q"
+diff_Y = "I"
+
 
 def cosineClustering(num_clusters):
     global cluster_dict
@@ -101,17 +107,17 @@ def cosineClustering(num_clusters):
 
 
         #cluster grid to show where clusters fall
-        cluster_grid = np.ones(shape = (15,15,3))
+        cluster_grid = np.ones(shape = (dataGrid.dims[0],dataGrid.dims[1],3))
         #cluster grid with similarity to cluster average as brightness
-        cluster_grid_scale = np.ones(shape = (15,15,3))
-        for val in range(1,178):
+        cluster_grid_scale = np.ones(shape = (dataGrid.dims[0],dataGrid.dims[1],3))
+        for val in dataGrid.grid_locations:
             x,y = dataGrid.coord(val)
             cluster = agg.labels_[val-1]
             similarity = similarity_vector(dataGrid.data_at_loc(val)[:,1],averages[cluster])
             #adjusting the similarity gradient
             similarity = math.pow(similarity,power)
-            cluster_grid_scale[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,similarity])
-            cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
+            cluster_grid_scale[y-1][dataGrid.dims[0]-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,similarity])
+            cluster_grid[y-1][dataGrid.dims[0]-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
 
         # x, y locations of spectra closest to average
         points_x = [-1 for x in range(i)]
@@ -120,7 +126,7 @@ def cosineClustering(num_clusters):
         points_loc = [-1 for x in range(i)]
 
         #find grid locations closest to average
-        for loc in range(1,178):
+        for loc in dataGrid.grid_locations:
             cluster = agg.labels_[loc-1]
             cur_x = points_x[cluster]
             cur_y = points_y[cluster]
@@ -145,13 +151,15 @@ def cosineClustering(num_clusters):
 
 
 def peakReductionClustering(num_clusters):
+    #USES PEAK GRID for Peak Counts and Peak widths
     global cluster_dict
+
     if (num_clusters,"p") in cluster_dict.keys():
         return cluster_dict[(num_clusters,"p")]
     #Create Point Cloud
     SCALE = 100
     def to_point(x,y,p):
-        return [(x-1)/15.,(y-1)/15.,SCALE*float(p)/5]
+        return [(x-1)/dataGrid.dims[0],(y-1)/dataGrid.dims[1],SCALE*float(p)/5]
     peaks = []
     for k in curveGrid.data.keys():
         x,y = curveGrid.coord(k)
@@ -184,7 +192,7 @@ def peakReductionClustering(num_clusters):
         cluster_centers = np.zeros(i)
         #sum vectors in each cluster
         cluster_sums = np.zeros(shape=(i,len(pca[0])))
-        for val in range(1,178):
+        for val in dataGrid.grid_locations:
             cluster = agg.labels_[val-1]
             cluster_sums[cluster] = cluster_sums[cluster] + pca[0]
 
@@ -192,57 +200,47 @@ def peakReductionClustering(num_clusters):
         for cluster in range(0,i):
             count = np.count_nonzero(agg.labels_==cluster)
             cluster_sums[cluster] = cluster_sums[cluster] / count
-
+        #find cluster centers
         for cluster,center_v in enumerate(cluster_sums):
             cluster_v = pca[np.where(agg.labels_==cluster)[0]]
             index = np.argmin(np.sum(np.square(cluster_v - center_v),axis=1))
             cluster_centers[cluster] = np.where(agg.labels_==cluster)[0][index] + 1
 
-        cluster_grid = np.zeros(shape = (15,15,3))
-        for val in range(1,178):
+        cluster_grid = np.ones(shape = (dataGrid.dims[0],dataGrid.dims[1],3))
+        for val in dataGrid.grid_locations:
             x,y = dataGrid.coord(val)
             cluster = agg.labels_[val-1]
-            cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
+            cluster_grid[y-1][dataGrid.dims[0]-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
 
 
         peak_max_counts = np.zeros(i)
-        for val in range(1,178):
+        for val in dataGrid.grid_locations:
             cluster = agg.labels_[val-1]
-            peak_max_counts[cluster] = max(peak_max_counts[cluster],len(curveGrid.data_at_loc(val)[:,1]))
+            peak_max_counts[cluster] = max(peak_max_counts[cluster],len(peakGrid.data_at_loc(val)[:,1]))
 
-        peak_grid = np.zeros(shape =(15,15,3))
-        for val in range(1,178):
+        peak_grid = np.ones(shape =(dataGrid.dims[0],dataGrid.dims[1],3))
+        for val in dataGrid.grid_locations:
             x,y = dataGrid.coord(val)
             cluster = agg.labels_[val-1]
-            k = len(curveGrid.data_at_loc(val)[:,1])/peak_max_counts[cluster]
-            peak_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([1,1,k])
+            k = len(peakGrid.data_at_loc(val)[:,1])/peak_max_counts[cluster]
+            peak_grid[y-1][dataGrid.dims[0]-x] = matplotlib.colors.hsv_to_rgb([1,1,k])
 
         width_max = 0
-        for val in range(1,178):
-            width_max = max(width_max,np.nanmax(curveGrid.data_at_loc(val)[:,2].astype(np.float)))
+        for val in dataGrid.grid_locations:
+            width_max = max(width_max,np.nanmax(peakGrid.data_at_loc(val)[:,2].astype(np.float)))
 
-        width_grid = np.zeros(shape =(15,15))
+        width_grid = np.ones(shape =(dataGrid.dims[0],dataGrid.dims[1]))
         width_grid.fill(np.nan)
-        for val in range(1,178):
+        for val in dataGrid.grid_locations:
             x,y = dataGrid.coord(val)
             cluster = agg.labels_[val-1]
-            k = np.nanmax(curveGrid.data_at_loc(val)[:,2].astype(np.float))
-            width_grid[y-1][15-x] = k
+            k = np.nanmax(peakGrid.data_at_loc(val)[:,2].astype(np.float))
+            width_grid[y-1][dataGrid.dims[0]-x] = k
 
         return cluster_grid, peak_grid, width_grid, cluster_centers,agg.labels_
 
     cluster_dict[(num_clusters,"p")] = (get_cluster_grids(num_clusters))
     return cluster_dict[(num_clusters,"p")]
-
-
-
-
-#fileMenus = ["Open", "Save", "Save as...", "-", "Close"]
-#app.addMenuList("File", fileMenus, menuPress)
-#app.createMenu("File")
-
-#app.addStatusbar(fields=1)
-#app.setStatusbar("Data Directory: " + str(dataDir), 0)
 
 
 ###############################################################################
@@ -257,52 +255,97 @@ def peakReductionClustering(num_clusters):
 #################################################
 
 def loadData(button):
-    global dataGrid,peakGrid, curveGrid
-    if button == "Load Data":
-        dataDir = app.getEntry("data")
-        dataRegex = app.getEntry("Data Regex")
-        peakDir = app.getEntry("peaks")
-        peakRegex = app.getEntry("Peak Data Regex")
-        curveRegex = app.getEntry("Curve Data Regex")
+    global dataGrid,peakGrid, curveGrid, cluster_dict
+    cluster_dict = {}
+    dataDir = app.getEntry("data")
+    dataRegex = app.getEntry("Data Regex")
+    peakDir = app.getEntry("peaks")
+    peakRegex = app.getEntry("Peak Data Regex")
+    curveRegex = app.getEntry("Curve Data Regex")
 
-        dataDir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C"
-        peakDir = "/home/sasha/Desktop/peakTest"
+    load_count = 0
+    try: # Load Data
+        dataGrid = DataGrid(dataDir,dataRegex)
+        load_count += 1
+        app.setLabel("status_data","Data Loaded")
+        app.setLabelBg("status_data","white")
+    except RuntimeError:
+        app.setLabel("status_data","ERROR: Missing Data Files")
+        app.setLabelBg("status_data","red")
+        print("## WARNING ##")
+        print(RuntimeError("Missing Data Files"))
+        print()
+    except FileNotFoundError:
+        app.setLabel("status_data","ERROR: Invalid Data Directory")
+        app.setLabelBg("status_data","red")
+        print("## WARNING ##")
+        print(FileNotFoundError("Invalid Directory"))
+        print()
 
-        try:
-            dataGrid = DataGrid(dataDir,dataRegex)
-        except RuntimeError:
-            print("## WARNING ##")
-            print(RuntimeError("Missing Data Files"))
-            print()
-        try:
-            peakGrid = DataGrid(peakDir,peakRegex)
-        except RuntimeError:
-            print("## WARNING ##")
-            print(RuntimeError("Missing Peak Param Files"))
-            print()
-        try:
-            curveGrid = DataGrid(peakDir,curveRegex)
-        except RuntimeError:
-            print("## WARNING ##")
-            print(RuntimeError("Missing Curve Param Files"))
-            print()
+    try: # Load Peak Data
+        peakGrid = DataGrid(peakDir,peakRegex)
+        load_count += 1
+        app.setLabel("status_peak","Peak Params Loaded")
+        app.setLabelBg("status_peak","white")
+    except RuntimeError:
+        app.setLabel("status_peak","ERROR: Missing Peak Param Files")
+        app.setLabelBg("status_peak","red")
+        print("## WARNING ##")
+        print(RuntimeError("Missing Peak Param Files"))
+        print()
+    except FileNotFoundError:
+        app.setLabel("status_peak","ERROR: Invalid Peak Param Directory")
+        app.setLabelBg("status_peak","red")
+        print("## WARNING ##")
+        print(FileNotFoundError("Invalid Directory"))
+        print()
+
+    try: # Load Curve Data
+        curveGrid = DataGrid(peakDir,curveRegex)
+        load_count += 1
+        app.setLabel("status_curve","Curve Params Loaded")
+        app.setLabelBg("status_curve","white")
+    except RuntimeError:
+        app.setLabel("status_curve","ERROR: Missing Curve Param Files")
+        app.setLabelBg("status_curve","red")
+        print("## WARNING ##")
+        print(RuntimeError("Missing Curve Param Files"))
+        print()
+    except FileNotFoundError:
+        app.setLabel("status_curve","ERROR: Invalid Peak Param Directory")
+        app.setLabelBg("status_curve","red")
+        print("## WARNING ##")
+        print(FileNotFoundError("Invalid Directory"))
+        print()
+
+    if load_count == 0:
+        app.setLabel("status","ERROR: Data Not Loaded")
+        app.setLabelBg("status","red")
+    elif load_count < 3:
+        app.setLabel("status","Data Partially Loaded")
+        app.setLabelBg("status","yellow")
+    else:
+        app.setLabel("status","All Data Loaded")
+        app.setLabelBg("status","green")
 
 def sendToWindow(button):
     global cluster_grid,num_clusters, win_number
-    name = "Window Number " + str(win_number)
+    name = "Clustering Analysis"# + str(win_number)
     win = str(win_number)
     grid_location_list.append([])
-    app.startSubWindow(win + "clustering window",title=name,modal=False,transient=False, blocking=False)
+    app.startSubWindow("window " + win,title=name,modal=False,transient=False, blocking=False)
     app.setSize(800, 600)
     app.setSticky("news")
     app.startFrame(win+"all plots",row=0,column=0)
     app.startFrame(win+"clustering_options",row=0,column=0)
     app.setSticky("news")
     app.setStretch("column")
-    app.addLabel(win+"clustering_opt", "Clustering Options")
+    app.addLabel(win+"clustering_opt", "Clustering Method")
     app.setLabelBg(win+"clustering_opt", "grey")
     app.addRadioButton(win+"mode", "Cosine Clustering")
     app.addRadioButton(win+"mode", "Peak Reduction Clustering")
+    app.addRadioButton(win+"mode", "Peak Counts")
+    app.addRadioButton(win+"mode", "Peak FWHM")
     app.setRadioButtonChangeFunction(win+"mode",lambda x : switchModeOption(x,win))
 
     #SLIDER
@@ -311,12 +354,15 @@ def sendToWindow(button):
     app.setScaleIncrement(win+"num_clusters", 1)
     app.showScaleIntervals(win+"num_clusters", 5)
     app.showScaleValue(win+"num_clusters",show=True)
-    app.setScaleChangeFunction(win+"num_clusters",lambda x : runClustering(x,win))
+    #app.setScaleChangeFunction(win+"num_clusters",lambda x : runClustering(x,win))
 
     app.addNamedButton("Cluster",win+"Cluster",lambda x : runClustering(x,win))
     app.setButtonBg(win+"Cluster","red")
 
-    app.startFrame(win+"cosine options",row=6,column=0)
+    app.addButton(win+"Clear Points",lambda x : clearPoints(x,win))
+    app.setButtonBg(win+"Clear Points","red")
+
+    app.startFrame(win+"cosine options",row=9,column=0)
     app.addLabel(win+"cosine_options","Additional Options")
     app.setLabelBg(win+"cosine_options","grey")
     app.addRadioButton(win+"cos_mode", "Cosine Clustering")
@@ -325,12 +371,10 @@ def sendToWindow(button):
     app.stopFrame()
 
 
-    app.startFrame(win+"peak options",row=6,column=0)
+    app.startFrame(win+"peak options",row=9,column=0)
     app.addLabel(win+"peak_options","Additional Options")
     app.setLabelBg(win+"peak_options","grey")
     app.addRadioButton(win+"peak_mode", "Peak Reduction Clustering")
-    app.addRadioButton(win+"peak_mode", "Peak Counts")
-    app.addRadioButton(win+"peak_mode", "Peak FWHM")
     app.stopFrame()
     app.hideFrame(win+"peak options")
 
@@ -340,7 +384,7 @@ def sendToWindow(button):
     win_fig_cluster = app.addPlotFig(win+"cluster",showNav=True)
     location_select = win_fig_cluster.canvas.mpl_connect('button_press_event', lambda x : selectClusterLocation(x,win))
     win_ax_cluster = win_fig_cluster.add_subplot(1,1,1)
-    win_ax_cluster.imshow(np.zeros(shape=(15,15)))
+    win_ax_cluster.imshow(np.ones(shape=(15,15))) #starting image to show
     win_cluster_plot_list.append(win_ax_cluster)
     win_cluster_fig_list.append(win_fig_cluster)
     app.refreshPlot(win+"cluster")
@@ -348,28 +392,79 @@ def sendToWindow(button):
 
     app.stopFrame()
 
-    app.startFrame(win+"diffraction",row=1,column=0)
+    app.startFrame(win+"diffraction options",row=1,column=0)
+
+    app.startFrame(win+"diff_stack",row=0,column=0)
+    app.setSticky("new")
+    app.setStretch("column")
+    app.addLabel(win+"stacking_opp_label", "Stacking Options")
+    app.setSticky("n")
+    app.setLabelBg(win+"stacking_opp_label", "grey")
+    app.addLabel(win+"stacking_opp","Stacking Offset")
+    app.addEntry(win+"Stacking Factor")
+    app.addLabel(win+"stacking_opp_range","Range (min,max)")
+    app.addNumericEntry(win+"min")
+    app.addNumericEntry(win+"max")
+    app.addNamedButton("Plot",win+"Plot",lambda : diffPlot(win))
+    app.setButtonBg(win+"Plot","red")
+    #app.addNamedCheckBox("Plot Peaks (x)",win+"diff_peaks")
+    #app.addNamedCheckBox("Plot Curves (o)",win+"diff_curves")
+    app.addRadioButton(win+"diff_scale","Linear Scale")
+    app.addRadioButton(win+"diff_scale","Square Root Scale")
+    app.addRadioButton(win+"diff_scale","Log Scale")
+    app.stopFrame()
+
+    app.startFrame(win+"diffraction",row=0,column=1)
     win_fig_plot = app.addPlotFig(win+"diff",showNav=True)
     win_ax_plot = win_fig_plot.add_subplot(1,1,1)
     win_diff_plot_list.append(win_ax_plot)
     app.refreshPlot(win+"diff")
     app.stopFrame()
 
+    app.stopFrame()
+
     app.stopSubWindow()
-    app.showSubWindow(win+"clustering window",hide = False)
+    app.showSubWindow("window " + win,hide = False)
     win_number+=1
 
 def runClustering(button,win):
-    global cluster_grid,num_clusters
+    global cluster_grid,num_clusters,cluster_dict
+
+    #Get global variables
+    if win == "":
+        ax = ax_cluster#main window
+        fig = fig_cluster
+        locs = grid_location_list[0]
+    else:
+        ax = win_cluster_plot_list[int(win)]
+        fig = win_cluster_fig_list[int(win)]
+        locs = grid_location_list[int(win)+1]
+
 
     num_clusters = app.getScale(win+"num_clusters")
     mode = app.getRadioButton(win+"mode")
     #sub_mode = app.getRadioButton(win+)
     if mode == "Cosine Clustering":
         cluster_grid = cosineClustering(num_clusters)[1]
-    else:
+        plotClustering(win)
+    elif mode == "Peak Reduction Clustering":
         cluster_grid = peakReductionClustering(num_clusters)[0]
-    plotClustering(win)
+        plotClustering(win)
+    else:
+        #generate clustering to have peak and width data
+        peakReductionClustering(num_clusters)[0]
+
+        if mode == "Peak Counts":
+            cluster_grid = cluster_dict[(num_clusters,"p")][1]
+            peakCountFun = lambda loc : len(peakGrid.data_at_loc(loc)[:,0])
+            plotPeakReductionCounts(win,ax,locs,peakCountFun)
+        elif mode == "Peak FWHM":
+            cluster_grid = cluster_dict[(num_clusters,"p")][2]
+            plotPeakReductionFWHM(win,fig,ax,locs)
+
+    #Remove color bar
+    while not button == "Peak FWHM" and len(fig.axes) > 1:
+        fig.axes[-1].remove()
 
 def plotClustering(win):
     global cluster_grid, cluster_dict
@@ -407,125 +502,120 @@ def plotClustering(win):
     elif button == "Peak Reduction Clustering":
         cluster_grid = cluster_dict[(num_clusters,"p")][0]
         plotPeakReductionClustering(win,ax,locs)
-    elif button == "Peak Counts":
-        cluster_grid = cluster_dict[(num_clusters,"p")][1]
-        peakCountFun = lambda loc : len(curveGrid.data_at_loc(loc)[:,0])
-        plotPeakReductionCounts(win,ax,locs,peakCountFun)
-    elif button == "Peak FWHM":
-        cluster_grid = cluster_dict[(num_clusters,"p")][2]
-        plotPeakReductionFWHM(win,fig,ax,locs)
     else:
         pass
-
     #Remove color bar
-    if not button == "Peak FWHM" and len(fig.axes) > 1:
+    while not button == "Peak FWHM" and len(fig.axes) > 1:
         fig.axes[-1].remove()
 
-"""
-Plotting Cosine Clustering
-"""
 def plotCosineClustering(win,ax,locs):
     global cluster_grid
     ax.cla()
+    ax.title.set_text(cluster_title.replace("#",str(app.getScale(win+"num_clusters"))))
     ax.imshow(cluster_grid)
     ax.invert_yaxis()
     ax.axis("off")
     for i in range(dataGrid.size):
         x,y = dataGrid.coord(i+1)
         if (i+1) in locs:
-            ax.scatter(15-x-.1,y-1-.1,marker='o',s=70,color="white")
-            ax.annotate(str(i+1),(15-x-.4,y-1-.4),size=8)
+            ax.scatter(dataGrid.dims[0]-x-.1,y-1-.1,marker='o',s=70,color="white")
+            ax.annotate(str(i+1),(dataGrid.dims[0]-x-.4,y-1-.4),size=8)
         else:
-            ax.annotate(str(i+1),(15-x-.4,y-1-.4),size=6)
+            ax.annotate(str(i+1),(dataGrid.dims[0]-x-.4,y-1-.4),size=6)
     app.refreshPlot(win+"cluster")
 
 def plotCosineClusterSimilarity(win,ax,locs):
     global cluster_grid
     ax.cla()
+    ax.title.set_text(cluster_title.replace("#",str(app.getScale(win+"num_clusters"))))
     ax.imshow(cluster_grid)
     ax.invert_yaxis()
     ax.axis("off")
     for i in range(dataGrid.size):
         x,y = dataGrid.coord(i+1)
         if (i+1) in locs:
-            ax.scatter(15-x-.1,y-1-.1,marker='o',s=70,color="white")
-            ax.annotate(str(i+1),(15-x-.4,y-1-.4),size=8)
+            ax.scatter(dataGrid.dims[0]-x-.1,y-1-.1,marker='o',s=70,color="white")
+            ax.annotate(str(i+1),(dataGrid.dims[0]-x-.4,y-1-.4),size=8)
         else:
-            ax.annotate(str(i+1),(15-x-.4,y-1-.4),size=6)
+            ax.annotate(str(i+1),(dataGrid.dims[0]-x-.4,y-1-.4),size=6)
     app.refreshPlot(win+"cluster")
 
 def plotCosineClusterCenters(win,ax,locs,centers):
     global cluster_grid
-
     ax.cla()
+    ax.title.set_text(cluster_title.replace("#",str(app.getScale(win+"num_clusters"))))
     ax.imshow(cluster_grid)
     ax.invert_yaxis()
     ax.axis("off")
     for i in range(dataGrid.size):
         x,y = dataGrid.coord(i+1)
         if (i+1) in locs:
-            ax.scatter(15-x-.1,y-1-.1,marker='o',s=70,color="white")
+            ax.scatter(dataGrid.dims[0]-x-.1,y-1-.1,marker='o',s=70,color="white")
             if i+1 in centers:
-                ax.annotate(str(i+1),(15-x-.4,y-1-.4),size=8)
+                ax.annotate(str(i+1),(dataGrid.dims[0]-x-.4,y-1-.4),size=8)
         else:
             if i+1 in centers:
-                ax.annotate(str(i+1),(15-x-.4,y-1-.4),size=6)
+                ax.annotate(str(i+1),(dataGrid.dims[0]-x-.4,y-1-.4),size=6)
     app.refreshPlot(win+"cluster")
 
 def plotPeakReductionClustering(win,ax,locs):
     global cluster_grid
     ax.cla()
+    ax.title.set_text(cluster_title.replace("#",str(app.getScale(win+"num_clusters"))))
     ax.imshow(cluster_grid)
     ax.invert_yaxis()
     ax.axis("off")
     for i in range(dataGrid.size):
         x,y = dataGrid.coord(i+1)
         if (i+1) in locs:
-            ax.scatter(15-x-.1,y-1-.1,marker='o',s=70,color="white")
-            ax.annotate(str(i+1),(15-x-.4,y-1-.4),size=8)
+            ax.scatter(dataGrid.dims[0]-x-.1,y-1-.1,marker='o',s=70,color="white")
+            ax.annotate(str(i+1),(dataGrid.dims[0]-x-.4,y-1-.4),size=8)
         else:
-            ax.annotate(str(i+1),(15-x-.4,y-1-.4),size=6)
+            ax.annotate(str(i+1),(dataGrid.dims[0]-x-.4,y-1-.4),size=6)
     app.refreshPlot(win+"cluster")
 
 def plotPeakReductionCounts(win,ax,locs,peakCountFun):
     global cluster_grid
     ax.cla()
+    ax.title.set_text(cluster_title.replace("#",str(app.getScale(win+"num_clusters"))))
     ax.imshow(cluster_grid)
     ax.invert_yaxis()
     ax.axis("off")
     for i in range(dataGrid.size):
         x,y = dataGrid.coord(i+1)
         if (i+1) in locs:
-            ax.scatter(15-x-.1,y-1-.1,marker='o',s=70,color="white")
-            ax.annotate(str(peakCountFun(i+1)),(15-x-.4,y-1-.4),size=8)
+            ax.scatter(dataGrid.dims[0]-x-.1,y-1-.1,marker='o',s=70,color="white")
+            ax.annotate(str(peakCountFun(i+1)),(dataGrid.dims[0]-x-.4,y-1-.4),size=8,color="black")
         else:
-            ax.annotate(str(peakCountFun(i+1)),(15-x-.4,y-1-.4),size=8)
+            ax.annotate(str(peakCountFun(i+1)),(dataGrid.dims[0]-x-.4,y-1-.4),size=8,color="white")
     app.refreshPlot(win+"cluster")
 
 def plotPeakReductionFWHM(win,fig,ax,locs):
     global cluster_grid
     ax.cla()
-    #fig.clf()
+    """ax = fig.add_subplot(111)
+    ax.set_aspect("equal")"""
+    ax.title.set_text(cluster_title.replace("#",str(app.getScale(win+"num_clusters"))))
     ax.invert_yaxis()
     heatmap = ax.pcolor(np.flip(cluster_grid,axis=0),cmap="viridis_r")
-    if len(fig.axes) > 1:
-        pts = fig.axes[-1].get_position().get_points()
-        label = fig.axes[-1].get_ylabel()
-        fig.axes[-1].remove()
+    """if len(fig.axes) > 1:
+        pts = fig.axes[0].get_position().get_points()
+        label = fig.axes[0].get_ylabel()
+        fig.cla()
         cax= fig.add_axes([pts[0][0],pts[0][1],pts[1][0]-pts[0][0],pts[1][1]-pts[0][1]  ])
         cbar = plt.colorbar(heatmap, cax=cax)
         cbar.ax.set_ylabel(label)
     else:
-        fig.colorbar(heatmap, ax=ax)
+        fig.colorbar(heatmap, ax=ax)"""
     ax.invert_yaxis()
     ax.axis("off")
     for i in range(dataGrid.size):
         x,y = dataGrid.coord(i+1)
         if (i+1) in locs:
-            ax.scatter(15-x-.1,y-1-.1,marker='o',s=70,color="white")
-            ax.annotate(str(i+1),(15-x+.2,y-1+.2),size=8)
+            ax.scatter(dataGrid.dims[0]-x+.5,y-1+.5,marker='o',s=70,color="white")
+            ax.annotate(str(i+1),(dataGrid.dims[0]-x+.2,y-1+.2),size=8)
         else:
-            ax.annotate(str(i+1),(15-x+.2,y-1+.2),size=8)
+            ax.annotate(str(i+1),(dataGrid.dims[0]-x+.2,y-1+.2),size=8)
     app.refreshPlot(win+"cluster")
 
 def selectClusterLocation(event,win):
@@ -538,26 +628,63 @@ def selectClusterLocation(event,win):
         ax = win_diff_plot_list[int(win)]
         locs = grid_location_list[int(win)+1]
 
-    print(event.xdata,event.ydata)
-    loc = dataGrid.grid_num(int(15-round(event.xdata)),int(round(event.ydata)+1))
+    mode = app.getRadioButton(win+"mode")
+    if mode == "Peak FWHM":
+        loc = dataGrid.grid_num(dataGrid.dims[0]-int(event.xdata),int(event.ydata)+1)
+    else:
+        loc = dataGrid.grid_num(int(dataGrid.dims[0]-round(event.xdata)),int(round(event.ydata)+1))
     if loc in locs:
         locs.remove(loc)
     else:
         locs.append(loc)
 
+    diffPlot(win,ax,locs)
+
+def diffPlot(win,ax=None,locs=None):
+    if ax == None or locs == None:
+        if win == "":
+            ax = ax_plot#main window
+            locs = grid_location_list[0]
+        else:
+            ax = win_diff_plot_list[int(win)]
+            locs = grid_location_list[int(win)+1]
     #Update cluster plot
-    plotClustering(win)
+    #using run instead of plot because run identifies which mode is selected
+    runClustering("",win)
+    shift = 0
+    try:
+        delta = int(app.getEntry(win+"Stacking Factor"))
+    except:
+        delta = 0
+
+    x_min = app.getEntry(win+"min")
+    x_max = app.getEntry(win+"max")
+
+    #plot_peaks = app.getCheckBox(win+"diff_peaks")
+    #plot_curve_peaks = app.getCheckBox(win+"diff_curves")
+
+    if app.getRadioButton(win+"diff_scale") == "Linear Scale":
+        scale = np.vectorize(lambda x : x)
+    elif app.getRadioButton(win+"diff_scale") == "Square Root Scale":
+        scale = np.sqrt
+    else:
+        scale = np.log
 
     ax.cla()
+
+    ax.set_title(diff_title.replace("#",str(app.getScale(win+"num_clusters"))),fontsize=11)
+    ax.set_xlabel(diff_X.replace("#",str(app.getScale(win+"num_clusters"))),fontsize=11)
+    ax.set_ylabel(diff_Y.replace("#",str(app.getScale(win+"num_clusters"))),fontsize=11)
     for loc in locs:
         X = dataGrid.data_at_loc(loc)[:,0]
         Y = dataGrid.data_at_loc(loc)[:,1]
-        ax.plot(X,Y,label=str(loc))
+        ax.plot(X,scale(Y) + shift,label=str(loc))
+        shift += delta
     ax.legend()
+    ax.set_xlim(x_min,x_max)
     app.refreshPlot(win+"diff")
 
 def switchModeOption(mode,win):
-    print(win)
     mode = app.getRadioButton(win+"mode")
     if mode == "Cosine Clustering":
         app.showFrame(win+"cosine options")
@@ -566,18 +693,33 @@ def switchModeOption(mode,win):
         app.hideFrame(win+"cosine options")
         app.showFrame(win+"peak options")
 
+def updatePlotLabels(button):
+    global cluster_title,diff_title,diff_X,diff_Y
+    cluster_title = app.getEntry("Cluster Plot Title")
+    diff_title = app.getEntry("Diffraction Plot Title")
+    diff_X = app.getEntry("Diffraction Plot X-axis")
+    diff_Y = app.getEntry("Diffraction Plot Y-axis")
+
+def clearPoints(button,win):
+    global grid_locations_list
+    if win == "":
+        grid_location_list[0] = []
+    else:
+        grid_location_list[int(win)+1] = []
+    runClustering("",win)
+
 
 #################################################
 # GUI LAYOUT
 #################################################
 
 # create a GUI variable called app
-app = gui("Clustering Analysis","1200x600")
-app.addLabel("title", "Welcome to appJar")
-app.setLabelBg("title", "red")
+app = gui("Clustering Analysis","1000x700")
 
+app.createMenu("File",tearable=False)
+app.addMenuItem("File","New Window",func=sendToWindow,shortcut="Control-n",underline=-1)
 
-app.startPanedFrame("options", row=0, column=0)
+app.startFrame("options", row=0, column=0)
 app.setSticky("news")
 app.setStretch("column")
 app.addLabel("opt_title", "Data Options")
@@ -597,9 +739,40 @@ app.addLabelEntry("Peak Data Regex")
 app.setEntry("Peak Data Regex", ".*_(?P<num>.*?)_bkgdSu_peakParams.csv")
 app.addLabelEntry("Curve Data Regex")
 app.setEntry("Curve Data Regex", ".*_(?P<num>.*?)_bkg_curveParams.csv")
-
+app.setSticky("ns")
 app.addButtons(["Load Data"],loadData)
-app.stopPanedFrame()
+app.setButtonBg("Load Data","red")
+
+app.setSticky("ew")
+app.addLabel("plot_settings","Plot Label Options")
+app.setLabelBg("plot_settings","grey")
+app.addLabel("cluster_plot_title_note","Use \'#\' as number of clusters")
+app.addLabelEntry("Cluster Plot Title")
+app.setEntry("Cluster Plot Title", "#")
+app.addLabelEntry("Diffraction Plot Title")
+app.setEntry("Diffraction Plot Title", "Diffraction Patterns")
+app.addLabelEntry("Diffraction Plot X-axis")
+app.setEntry("Diffraction Plot X-axis", "Q")
+app.addLabelEntry("Diffraction Plot Y-axis")
+app.setEntry("Diffraction Plot Y-axis", "I")
+app.setSticky("ns")
+app.addButton("Update",updatePlotLabels)
+app.setButtonBg("Update","red")
+app.addLabel("(Note: you may need to manually redraw plots)")
+
+app.setSticky("ew")
+app.addLabel("status_label","Status")
+app.setLabelBg("status_label","grey")
+app.addLabel("status","")
+app.addLabel("status_data","Data Not Loaded")
+app.addLabel("status_peak","Peak Params Not Loaded")
+app.addLabel("status_curve","Curve Params Not Loaded")
+
+app.setLabelBg("status","white")
+app.setLabelBg("status_data","white")
+app.setLabelBg("status_peak","white")
+app.setLabelBg("status_curve","white")
+app.stopFrame()
 
 #app.directoryBox(title=None, dirName=None, parent=None)
 
@@ -610,10 +783,12 @@ app.startFrame("plots",row=0,column=0)
 app.startFrame("clustering_options",row=0,column=0)
 app.setSticky("news")
 app.setStretch("column")
-app.addLabel("clustering_opt", "Clustering Options")
+app.addLabel("clustering_opt", "Clustering Method")
 app.setLabelBg("clustering_opt", "grey")
 app.addRadioButton("mode", "Cosine Clustering")
 app.addRadioButton("mode", "Peak Reduction Clustering")
+app.addRadioButton("mode", "Peak Counts")
+app.addRadioButton("mode", "Peak FWHM")
 app.setRadioButtonChangeFunction("mode",lambda x : switchModeOption(x,""))
 #SLIDER
 app.addScale("num_clusters")
@@ -621,14 +796,15 @@ app.setScaleRange("num_clusters", 1, 30, curr=1)
 app.setScaleIncrement("num_clusters", 1)
 app.showScaleIntervals("num_clusters", 5)
 app.showScaleValue("num_clusters",show=True)
-app.setScaleChangeFunction("num_clusters",lambda x : runClustering(x,""))
+#app.setScaleChangeFunction("num_clusters",lambda x : runClustering(x,""))
 
 app.addButton("Cluster",lambda x : runClustering(x,""))
 app.setButtonBg("Cluster","red")
 
-app.addButton("Send To Window",sendToWindow)
+app.addButton("Clear Points",lambda x : clearPoints(x,""))
+app.setButtonBg("Clear Points","red")
 
-app.startFrame("cosine options",row=6,column=0)
+app.startFrame("cosine options",row=8,column=0)
 app.addLabel("cosine_options","Additional Options")
 app.setLabelBg("cosine_options","grey")
 app.addRadioButton("cos_mode", "Cosine Clustering")
@@ -637,12 +813,10 @@ app.addRadioButton("cos_mode", "Cluster Centers")
 app.stopFrame()
 
 
-app.startFrame("peak options",row=6,column=0)
+app.startFrame("peak options",row=8,column=0)
 app.addLabel("peak_options","Additional Options")
 app.setLabelBg("peak_options","grey")
 app.addRadioButton("peak_mode", "Peak Reduction Clustering")
-app.addRadioButton("peak_mode", "Peak Counts")
-app.addRadioButton("peak_mode", "Peak FWHM")
 app.stopFrame()
 app.hideFrame("peak options")
 
@@ -652,18 +826,44 @@ app.startFrame("clustering_plot",row=0,column=1)
 fig_cluster = app.addPlotFig("cluster",showNav=True)
 location_select = fig_cluster.canvas.mpl_connect('button_press_event', lambda x : selectClusterLocation(x,""))
 ax_cluster = fig_cluster.add_subplot(1,1,1)
-ax_cluster.imshow(np.zeros(shape=(15,15)))
+ax_cluster.imshow(np.ones(shape=(1,1))) # starting image to show
 ax_cluster.axis("off")
 app.refreshPlot("cluster")
 app.stopFrame()
 
 app.stopFrame()
 
-app.startFrame("diffraction",row=1,column=0)
+
+app.startFrame("diffraction options",row=1,column=0)
+
+app.startFrame("diff_stack",row=0,column=0)
+app.setSticky("new")
+app.setStretch("column")
+app.addLabel("stacking_opp_label", "Stacking Options")
+app.setSticky("n")
+app.setLabelBg("stacking_opp_label", "grey")
+app.addLabel("stacking_opp","Stacking Ofset")
+app.addNumericEntry("Stacking Factor")
+app.addLabel("stacking_opp_range","Range (min,max)")
+app.addNumericEntry("min")
+app.addNumericEntry("max")
+app.addButton("Plot",lambda : diffPlot(""))
+app.setButtonBg("Plot","red")
+#app.addNamedCheckBox("Plot Peaks (x)","diff_peaks")
+#app.addNamedCheckBox("Plot Curves (o)","diff_curves")
+app.addRadioButton("diff_scale","Linear Scale")
+app.addRadioButton("diff_scale","Square Root Scale")
+app.addRadioButton("diff_scale","Log Scale")
+app.stopFrame()
+
+app.startFrame("diffraction",row=0,column=1)
 fig_plot = app.addPlotFig("diff",showNav=True)
 ax_plot = fig_plot.add_subplot(1,1,1)
 app.refreshPlot("diff")
 app.stopFrame()
 
 app.stopFrame()
+
+app.stopFrame()
+
 app.go()

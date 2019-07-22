@@ -52,12 +52,13 @@ for loc in range(1,dataGrid.size):
 
     plt.plot(X,Y,color="blue")
 
-
+    """
     for peak in BBA_peaks:
         p = np.argmin(np.abs(X-peak))
         plt.plot(X[p],Y[p],'o',color="black")
     for p in peaks:
         plt.plot(X[p],Y[p],'x',color="red")
+    """
     """
     for params in curve_params:
         cen = params[1]
