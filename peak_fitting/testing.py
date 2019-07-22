@@ -17,7 +17,11 @@ import math
 import imageio
 import os
 
-
+"""
+######################
+Plotting found peaks on the diffraction patterns
+######################
+"""
 
 """
 Load Data and Peak Data
