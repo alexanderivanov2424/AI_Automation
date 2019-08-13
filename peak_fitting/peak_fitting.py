@@ -47,7 +47,7 @@ for loc in range(1,dataGrid.size):
     Y = dataGrid.data_at_loc(loc)[:,1]
 
     curve_params = fit_curves_to_data(X,Y)
-    peaks = get_peak_indices(X,Y)
+    peaks = get_peak_indices(X,Y)[:,0]
     BBA_peaks = peakGrid.data_at_loc(loc)[:,2]
 
     plt.plot(X,Y,color="blue")

@@ -34,8 +34,8 @@ def get_peak_indices(X,Y):
     peaks = []
     param_list = fit_curves_to_data(X,Y)
     for curve in param_list:
-        peaks.append(np.argmin(np.abs(X-curve[1])))
-    return peaks
+        peaks.append([np.argmin(np.abs(X-curve[1])),*curve])
+    return np.array(peaks)
 
 def fit_curves_to_data(X,Y):
     #base_line_params, _ = curve_fit(line,X,Y)

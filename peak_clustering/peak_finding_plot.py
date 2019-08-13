@@ -40,20 +40,20 @@ smooth_stack = lambda l,k,n : smooth(l,k) if n == 1 else smooth(smooth_stack(l,k
 
 
 
-for grid_location in range(1,dataGrid.size+1):
+for grid_location in range(53,dataGrid.size+1):
     fig = plt.figure(figsize =(17,9))
     X = dataGrid.data_at_loc(grid_location)[:,0]
     Y = dataGrid.data_at_loc(grid_location)[:,1]
     Slope = [(Y[i]-Y[i+1])/(X[i] - X[i+1])/100 for i in range(len(X)-1)]
 
 
-    for peak_x in peakGrid.data_at_loc(grid_location)[:,1]:
-        i = (np.abs(X - peak_x)).argmin()
-        plt.plot([X[i]],[Y[i]],"x",color='black')
+    #for peak_x in peakGrid.data_at_loc(grid_location)[:,1]:
+    #    i = (np.abs(X - peak_x)).argmin()
+    #    plt.plot([X[i]],[Y[i]],"x",color='black')
 
     for peak_x in curveGrid.data_at_loc(grid_location)[:,2]:
         i = (np.abs(X - peak_x)).argmin()
-        plt.plot([X[i]],[Y[i]+50],"x",color='red')
+        plt.plot([X[i]],[Y[i]],"x",color='red')
     plt.plot(X,Y,color='blue')
     #plt.plot(X[:-1],Slope,color='green')
     #plt.plot(X,[0 for i in X],color='black')

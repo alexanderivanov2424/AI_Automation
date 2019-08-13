@@ -54,7 +54,7 @@ for loc in range(1,dataGrid.size+1):
 locations =[85,69,53,39]
 #locations = range(82,96+1)
 #locations = [4,11,21,33,45,60,75,90,105,120,134,147,159,169,176]
-locations = [1,2,3]
+#locations = [1,2,3]
 #how much to shift each grid location vertically
 #(makes it easier to see peaks)
 shifts = [150*i for i,v in enumerate(locations)]

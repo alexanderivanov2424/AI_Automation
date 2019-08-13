@@ -29,11 +29,12 @@ data_path = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/"
 dataGrid = DataGrid(data_path,regex_500)
 
 # grid locations to plot
-locations = [30,35,138,168]
+locations = [1]
 
 #how much to shift each grid location vertically
 #(makes it easier to see peaks)
-shifts = [0,100,200,300]
+shifts = [0,1000]
+#shifts = [100 * i for i in range(len(locations))]
 
 
 def similarity_vector(A,B):
@@ -52,11 +53,13 @@ for i,k in enumerate(locations):
         y = y + shifts[i]
     x = dataGrid.data[k][:,0]
     plt.plot(x,y,label=str(k))
-plt.legend()
 
+    print(y.astype(int))
+#plt.legend()
 
 for i in range(len(locations)):
     for j in range(i+1,len(locations)):
         print("Similarity " + str(locations[i]) + "," + str(locations[j]) + ": " + str(similarity(locations[i],locations[j])))
+
 
 plt.show()
