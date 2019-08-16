@@ -82,7 +82,7 @@ def calculate_background_noise(X,Y,background_start,background_end):
     X_background = X[i:j+1]
     Y_background = Y[i:j+1]
     cosine_curve = lambda x,a,b,c,d : a*np.cos(b*x + c) + d
-    popt,_ = curve_fit(cosine_curve, X_background, Y_background)
+    popt,_ = curve_fit(cosine_curve, X_background, Y_background,maxfev=2000)
     resid = Y_background - cosine_curve(X_background,*popt)
     sd = np.std(resid)
     return sd*3
@@ -91,9 +91,11 @@ Fit curves to diffraction pattern.
 
 return curve parameters
 """
-def fit_curves_to_data(X,Y,background_start,background_end):
-    noise_threshold = calculate_background_noise(X,Y,background_start,background_end)
-
+def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None):
+    if noise == None:
+        noise_threshold = calculate_background_noise(X,Y,background_start,background_end)
+    else:
+        noise_threshold = noise
     local_minima,_ = find_peaks(np.amax(Y) - Y)
     change_points = list(local_minima) + [len(X)-1]
     median = np.median(Y)
@@ -188,9 +190,19 @@ return curve parameters.
 def fit_guess_curve_to_block(X,Y):
     cen = X[np.argmax(Y)] #peak center
     B = (X[-1] - X[0]) * 1 # 1% of block width
-    p0 = [np.max(Y)/100,cen,.01,.01,0]
-    bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,5,5,np.amax(Y)])
-    params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
+    try:
+        p0 = [np.max(Y)/100,cen,.01,.01,0]
+        bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,2,2,np.amax(Y)])
+        params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
+    except:
+        try:
+            p0 = [np.max(Y)/100,cen,.01,.01,0]
+            bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,5,5,np.amax(Y)])
+            params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
+        except:
+            p0 = [np.max(Y)/100,cen,2,2,np.amax(Y)/100]
+            bounds = ([0,cen-B,2,2,0],[np.max(Y),cen+B,5,5,np.amax(Y)])
+            params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
     return params
 
 """
@@ -216,7 +228,10 @@ def fit_curves_to_block(X,Y,noise_threshold):
             #recalculate residual
             curve = lambda x : multi_voigt(x,*all_params)
             resid = np.array([Y[i] - curve(x) for i,x in enumerate(X)])
-
+            #plt.plot(X,Y)
+            #plt.plot(X,curve(X))
+            #plt.plot(X,resid)
+            #plt.show()
         except:
             #if fit fails return peak params as is
             break
