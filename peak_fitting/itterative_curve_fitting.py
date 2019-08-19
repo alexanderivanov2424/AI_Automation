@@ -136,6 +136,16 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None)
         block_fits.append((block_X,[curve(x) for x in block_X]))
 
 
+    def fit(x):
+        loc = np.argmin(np.abs(X - x))
+        block = 0
+        for i,c in enumerate(change_points):
+            if c > loc:
+                block = i - 1
+                break
+        block_index =np.argmin(np.abs(block_fits[block][0] - x))
+        return block_fits[block][1][block_index]
+
 
     #optimize full spectra
     """
@@ -181,6 +191,7 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None)
     dict['residuals'] = resids
     dict['block curves'] = block_curves
     dict['block fits'] = block_fits
+    dict['fit'] = fit
     return dict
 
 """
@@ -219,7 +230,7 @@ def fit_curves_to_block(X,Y,noise_threshold):
         params = fit_guess_curve_to_block(X,resid)
         all_params = np.append(all_params,params)
 
-        # try to optimize all curves together for better fit
+        # try to optimize all curves together for better 
         p0 = all_params
         k = len(all_params)//5
         bounds = ([0,np.min(X),0,0,0] * k,[np.max(Y),np.max(X),5,5,np.max(Y)]*k)
@@ -228,10 +239,6 @@ def fit_curves_to_block(X,Y,noise_threshold):
             #recalculate residual
             curve = lambda x : multi_voigt(x,*all_params)
             resid = np.array([Y[i] - curve(x) for i,x in enumerate(X)])
-            #plt.plot(X,Y)
-            #plt.plot(X,curve(X))
-            #plt.plot(X,resid)
-            #plt.show()
         except:
             #if fit fails return peak params as is
             break

@@ -17,6 +17,8 @@ for loc in range(64,dataGrid.size,1):
 
     X = dataGrid.data_at_loc(loc)[:,0]
     Y = dataGrid.data_at_loc(loc)[:,1]
+    #plt.plot(X,Y)
+    #plt.show()
 
     dict = fit_curves_to_data(X,Y,1.5,1.81,noise=5)
     times.append(time.time() - ts)
@@ -28,6 +30,7 @@ for loc in range(64,dataGrid.size,1):
     voigt = dict['profile']
     block_curves = dict['block curves']
     block_fits = dict['block fits']
+    fit = dict['fit']
 
     # plot blocks
     [plt.axvline(X[c],color="red") for c in change_points]
@@ -39,14 +42,29 @@ for loc in range(64,dataGrid.size,1):
     for block_curve in block_curves:
         plt.plot(*block_curve,color="orange")
 
+
     #plot block residuals
+    combined_resid = 0
     for resid in residuals:
+        combined_resid += np.sum(np.abs(resid[1]))
         plt.plot(*resid,color="green")
+    print("Integrated Residual: ", combined_resid)
 
     #plot fit for each block
     for block_fit in block_fits:
         plt.plot(*block_fit,color="blue")
 
+    #plot fit curve
+    #(different from combined block fits at change points)
+    #plt.plot(X,[fit(x) for x in X],color="red")
+
+    #plot peak points
+    for params in param_list:
+        lim = .05
+        #if params[2] < lim and params[3] < lim:
+        x = params[1]
+        y = fit(x)
+        plt.plot([x],[y],'ro')
 
     plt.title(str(loc))
     plt.savefig("/home/sasha/Desktop/itterative_curve_fitting_save_test/plot_" + str(loc) + ".png")
@@ -57,7 +75,7 @@ for loc in range(64,dataGrid.size,1):
     sum = 0
     for t in times:
         sum += t
-    print((sum / len(times)))
+    print("average run time: ",(sum / len(times)))
 
 
 print(times)
