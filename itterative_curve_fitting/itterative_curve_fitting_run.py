@@ -3,13 +3,11 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-from peak_fitting.itterative_curve_fitting import fit_curves_to_data,save_data_to_csv
+from itterative_curve_fitting.itterative_curve_fitting import fit_curves_to_data,save_data_to_csv
 from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 dataGrid = DataGrid_TiNiSn_500C()
-#81 is concerning
-#151 is bad
 
-#27
+
 times = []
 for loc in range(1,dataGrid.size,1):
     print(loc)
@@ -46,7 +44,7 @@ for loc in range(1,dataGrid.size,1):
     #plot block residuals
     combined_resid = 0
     for resid in residuals:
-        combined_resid += np.sum(np.abs(resid[1]))
+        combined_resid += np.sum(np.abs(resid[1])) #sum y axis in residuals
         plt.plot(*resid,color="green")
     print("Integrated Residual: ", combined_resid)
 
