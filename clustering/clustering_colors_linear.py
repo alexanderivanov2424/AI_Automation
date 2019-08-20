@@ -1,4 +1,13 @@
+"""
+Produce a clustering where clusters that are split take on similar colors to
+the parent cluster.
+Colors are distributed linearly between "neighboring clusters"
 
+Note: "neighboring clusters" is fairly arbitrary but the overal goal is to show
+      the order / direction in which clusters split
+
+
+"""
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
 from sklearn.cluster import AgglomerativeClustering
@@ -9,13 +18,15 @@ import matplotlib
 import numpy as np
 import math
 
+#ignore warnings
+#easier to read output
 import warnings
 warnings.simplefilter("ignore")
 
-
+#object to store measurement data
 dataGrid = DataGrid_TiNiSn_500C()
 
-
+#compute similarity of two vectors
 def similarity_vector(A,B):
     pA, _ = find_peaks(A)
     pB, _ = find_peaks(B)
@@ -179,6 +190,9 @@ def get_cluster_grids(i):
     return cluster_grid, cluster_grid_scale, points_x, points_y, points_loc
 
 
+#__________________________________________
+#Visualization code that uses methods above
+#__________________________________________
 start = 176
 end = 177
 cluster_range = range(start,end+1)

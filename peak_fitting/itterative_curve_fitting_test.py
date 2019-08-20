@@ -11,7 +11,7 @@ dataGrid = DataGrid_TiNiSn_500C()
 
 #27
 times = []
-for loc in range(64,dataGrid.size,1):
+for loc in range(1,dataGrid.size,1):
     print(loc)
     ts = time.time()
 

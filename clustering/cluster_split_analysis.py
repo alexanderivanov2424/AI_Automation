@@ -1,5 +1,5 @@
 '''
-Script for analysing the differences between clusters and
+Script for analyzing the differences between clusters and
 for determining relative similarity between cluster centers
 
 The produced visual is saved as a PNG file.
@@ -8,9 +8,9 @@ Cluster labels and similarity to cluster center is computed
 for all grid locations and saved to an excel file.
 '''
 
-'''
-ADD AVERAGE TO PLOT
-'''
+
+## TODO:  ADD AVERAGE TO PLOT
+
 
 from data_loading.data_grid import DataGrid
 

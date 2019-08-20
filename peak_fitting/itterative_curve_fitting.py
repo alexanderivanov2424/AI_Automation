@@ -230,7 +230,7 @@ def fit_curves_to_block(X,Y,noise_threshold):
         params = fit_guess_curve_to_block(X,resid)
         all_params = np.append(all_params,params)
 
-        # try to optimize all curves together for better 
+        # try to optimize all curves together for better
         p0 = all_params
         k = len(all_params)//5
         bounds = ([0,np.min(X),0,0,0] * k,[np.max(Y),np.max(X),5,5,np.max(Y)]*k)
