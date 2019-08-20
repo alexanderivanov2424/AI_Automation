@@ -123,17 +123,31 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,
         block_X = X[change_points[i]:change_points[i+1]+1]
         block_Y = Y[change_points[i]:change_points[i+1]+1]
         block_params = fit_curves_to_block(block_X,block_Y,noise_threshold,max_curves)
-        curve_params = curve_params + block_params
 
-        for curve_p in block_params:
-            curve_t = lambda x : voigt(x,*curve_p)
-            block_curves.append((block_X,[curve_t(x) for x in block_X]))
+        if isinstance(block_params,tuple):
+            #block with no peaks (fit a line)
+            a = block_params[0]
+            b = block_params[1]
+            curve_params = curve_params + []
+
+            block_curves.append((block_X,[a*x +b for x in block_X]))
+
+            resid = np.array([block_Y[i] - a*x - b for i,x in enumerate(block_X)])
+            resids.append((block_X,resid))
+            block_fits.append((block_X,[a*x +b for x in block_X]))
+        else:
+            #block with peaks (multi voigt)
+            curve_params = curve_params + block_params
+
+            for curve_p in block_params:
+                curve_t = lambda x : voigt(x,*curve_p)
+                block_curves.append((block_X,[curve_t(x) for x in block_X]))
 
 
-        curve = lambda x : multi_voigt(x,*[p for params in block_params for p in params])
-        resid = np.array([block_Y[i] - curve(x) for i,x in enumerate(block_X)])
-        resids.append((block_X,resid))
-        block_fits.append((block_X,[curve(x) for x in block_X]))
+            curve = lambda x : multi_voigt(x,*[p for params in block_params for p in params])
+            resid = np.array([block_Y[i] - curve(x) for i,x in enumerate(block_X)])
+            resids.append((block_X,resid))
+            block_fits.append((block_X,[curve(x) for x in block_X]))
 
     #function for the full curve fit
     def fit(x):
@@ -188,11 +202,32 @@ def fit_guess_curve_to_block(X,Y):
     return params
 
 """
+Fit a line to given data and check if residual is withing noise
+Used to identify if a given block is purely noise and doesn't need a peak
+"""
+def is_background_line(X,Y,noise_threshold):
+    line = lambda x,a,b : a*x + b
+    params,_ = curve_fit(line,X,Y)
+    line_fit = lambda x : line(x,*params)
+    return np.max(np.abs(Y - line_fit(X))) < noise_threshold
+
+def fit_line_params(X,Y):
+    line = lambda x,a,b : a*x + b
+    params,_ = curve_fit(line,X,Y)
+    return (params[0],params[1])
+
+
+"""
 Itteratively fit curves to a block in the diffraction pattern
 """
 def fit_curves_to_block(X,Y,noise_threshold,max_curves):
     all_params = np.array([])
     resid = Y.copy()
+
+    #if the data can be fit by a line don't fit any curves
+    #this means the fit for the block will be constant 0
+    if is_background_line(X,Y,noise_threshold):
+        return fit_line_params(X,Y) #return tuple with line params
 
     num_curves = 0
     while not is_noise(resid,noise_threshold):
