@@ -44,6 +44,9 @@ data_loading - Loading experimental data for algorithms and clustering
 
 GUI - Stand Alone GUI for clustering algorithms / data analysis
 
+iterative_curve_fitting - Algorithm for iteratively fitting profiles to a
+                          diffraction pattern. Based on Robert Tang Kong's Code
+
 jupyter_notebooks - various documentation and jupyter_notebooks
 
 logs - outputs of algorithms (running statistics) (algorithms)
@@ -60,3 +63,11 @@ testing - various tests / temporary code
 utils - utility objects and methods
 
 videos - saved experimental video (algorithms)
+
+
+
+-------------------------------------------
+CONTACT
+
+Alexander Ivanov
+alexander_ivanov@brown.edu
