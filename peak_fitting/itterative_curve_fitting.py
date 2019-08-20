@@ -146,35 +146,6 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None)
         block_index =np.argmin(np.abs(block_fits[block][0] - x))
         return block_fits[block][1][block_index]
 
-
-    #optimize full spectra
-    """
-    full_params = np.array([])
-    for P in curve_params:
-        full_params = np.append(full_params,P)
-    p0 = full_params
-    k = len(full_params)//5
-    eps = .000000001
-    bounds0 = []
-    bounds1 = []
-
-    #Bounds for optimization
-    #seems like with any bounds it either takes forever or does nothing.
-    for i in range(k):
-        bounds0 = bounds0 + [p0[i*5],p0[i*5+1],p0[i*5+2],p0[i*5+3],0]
-        bounds1 = bounds1 + [p0[i*5]+eps,p0[i*5+1]+eps,p0[i*5+2]+eps,p0[i*5+3]+eps,100]
-        #bounds = ([0,np.min(X),0,0,0] * k,[np.max(Y),np.max(X),5,5,np.max(Y)]*k)
-    bounds = (bounds0,bounds1)
-    full_params,_ = curve_fit(multi_voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000,xtol=.00005)
-    #recalculate residual
-    curve = lambda x : multi_voigt(x,*full_params)
-    resid = np.array([Y[i] - curve(x) for i,x in enumerate(X)])
-    plt.plot(X,Y)
-    plt.plot(X,[curve(x) for x in X])
-    plt.plot(X,resid)
-    plt.show()
-    """
-
     curve_centers = []
     curve_I = []
     for curve_p in curve_params:
