@@ -1,6 +1,30 @@
-#Probabilistic Similarity Gradient
+"""
+
+Probabilistic Similarity Gradient
 
 
+Algorithm for selecting the next best measurement location
+
+Method:
+refer to jupyter notebook
+
+Save:
+Saves video into /videos/
+filename: PSG-[seed].mp4
+
+Arguments:
+-s --seed : seed for algorithm (random number seed)
+-k --G_init : initial value to fill similarity matrix with
+              (assumed similarity of all points)
+-p --power : Power by which to scale similarity grid. This essetially decides
+             how quickly the dissimilairty goes down around a potential location
+-b --blur : sigma value for gaussian blur used on dissimilarity grid
+-N : Number of samples to take
+-v --video : pass if a video should be saved
+--graphics : pass if plot (future video) should be shown in real time
+--delay : delay between frames of graphics. Delay is on top of code delay
+
+"""
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 from algorithms.similarity_metrics.similarity import getSimilarityClass
 
@@ -11,7 +35,6 @@ from utils.utils import interpolateDataCubic,interpolateDataAvg
 from scipy.ndimage.filters import gaussian_filter
 
 import numpy as np
-
 
 import argparse
 

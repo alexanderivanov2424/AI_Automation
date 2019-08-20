@@ -17,6 +17,10 @@ class CosineSimilarity:
     def similarity(self,V1,V2):
         return np.dot(V1,V2)/np.linalg.norm(V1)/np.linalg.norm(V2)
 
+"""
+Calculate cosine similarity between two diffraction patterns, but only at the
+peak locations. peak locations are local maxima.
+"""
 class PeakSimilarity:
     def similarity(self,A,B):
         pA, _ = find_peaks(A)

@@ -1,4 +1,17 @@
-#Delaunay Triangulation
+
+"""
+Delaunay Triangulation
+
+
+Note: (May need update)
+
+Algorithm for selecting the next best measurement location
+
+Method:
+refer to jupyter notebook
+
+
+"""
 
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
@@ -44,7 +57,8 @@ tri = None
 lengths = {}
 similarities = {}
 
-
+#get key from a given edge
+#key is used to querry dictionary
 def key_from_edge(a,b):
     x1 = int(tri.points[a][0])
     y1 = int(tri.points[a][1])
@@ -59,6 +73,7 @@ def key_from_edge(a,b):
         key = str(d1) + "," + str(d2)
     return key, d1, d2
 
+#add edge to dictionary
 def add_edge(a,b):
     key, d1, d2 = key_from_edge(a,b)
     if key in lengths:
@@ -66,17 +81,19 @@ def add_edge(a,b):
     lengths[key] = math.sqrt(np.sum(np.square(tri.points[a] - tri.points[b])))
     similarities[key] = (1 - similarity(M[d1-1],M[d2-1]))**10
 
+#update edges for new triangulation
 def update_edge_values():
     for x in tri.simplices:
         add_edge(x[0],x[1])
         add_edge(x[1],x[2])
         add_edge(x[0],x[2])
 
+#find the center ofa given edge
 def edge_center(a,b):
     return (np.add(tri.points[a],tri.points[b]))//2
 
 
-
+#initial set of measurements
 Initial_Points = []
 C_list = [1,14,164,172]
 for C in C_list:
@@ -85,19 +102,20 @@ for C in C_list:
     Initial_Points.append((x-1,y-1))
     S.add(C)
 
-
+#Delaunay Triangulation Object
 tri = Delaunay(Initial_Points,incremental=True)
 
 update_edge_values()
 
 while len(S) < NUMBER_OF_SAMPLES:
-    P = 1
+    P = 1 #probability of random sample
     if random.random() < p:
         cell = np.random.choice(range(1,dataGrid.size+1),1)
         while cell[0] in S:
             cell = np.random.choice(range(1,dataGrid.size+1),1)
         P = cell[0]
     else:
+        #locate maximum edge in triangulation
         max_v = -1000000
         max_p1 = None
         max_p2 = None
@@ -110,6 +128,7 @@ while len(S) < NUMBER_OF_SAMPLES:
                     max_p2 = e[1]
                     max_v = v
 
+        #sample center of this edge
         center = edge_center(max_p1,max_p2)
         P = dataGrid.grid_num(int(center[0]),int(center[1]))
         if P in S or P < 1 or P >= dataGrid.size:
