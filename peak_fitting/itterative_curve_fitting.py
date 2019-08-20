@@ -6,14 +6,12 @@ Blocks:
     merge blocks smaller than min-size
 
 Itterative Curve Fitting:
-    max 4 curves
-    stop if residual equivalent to noise
-    joint curve optimization
+    Itteratively fit guess curves to the residual.
+    Optimize all curves together to produce new residual
+    Stop if residual below to noise threshold
 
 ISSUES:
     Bad noise detection
-    Misses peaks in high density
-
 
 """
 
@@ -24,14 +22,19 @@ import matplotlib.pyplot as plt
 from scipy.special import wofz
 import csv
 
-#unused import
-#from statsmodels.stats.diagnostic import acorr_ljungbox
+#CONSTANTS
+MIN_BLOCK_SIZE = 20
+
+
 
 """
 Voigt Profile used for fitting
+
+NOTE: When adjusting the number of parameters code needs to be modified.
+(At the ## PARAM tags)
 """
 def voigt(x, amp,cen,alpha,gamma,c):
-    sigma = alpha / np.sqrt(2 * np.log(2))
+    sigma = alpha / np.sqrt(2 * np.log(2)) ## PARAM
     return amp * np.real(wofz(((x-cen) + 1j*gamma)/sigma/np.sqrt(2))) / sigma / np.sqrt(2*np.pi)+c
 
 """
@@ -39,8 +42,8 @@ Combination of multiple Voigt profiles
 """
 def multi_voigt(x,*params):
     sum = 0.0
-    for i in range(0,len(params)-1,5):
-        sum += voigt(x,params[i],params[i+1],params[i+2],params[i+3],params[i+4])
+    for i in range(0,len(params)-1,5):## PARAM
+        sum += voigt(x,params[i],params[i+1],params[i+2],params[i+3],params[i+4])## PARAM
     return sum
 
 """
@@ -50,19 +53,11 @@ Tests if there are statistically significant points
 def is_noise(data,noise_threshold):
     #residual based on amplitude noise
     return np.max(np.abs(data)) < noise_threshold
-    #noise based on Standard Deviation
-    """
-    sd = np.std(data)
-    mean = np.mean(data)
-    dev = np.where(np.abs(data-mean)/sd > 2)[0]
-    #more than k points are statistically significant
-    if len(dev) > 2:#k
-        return False
-    return True
-    """
+
 """
 Saves dictionary output from fit_curves_to_data to a csv
 Note: only saves peak parameters
+Note: full_file_name includes the path to the file, its name, and the .csv at the end
 """
 def save_data_to_csv(full_file_name,dict):
     curve_params = dict['curve_params']
@@ -86,12 +81,14 @@ def calculate_background_noise(X,Y,background_start,background_end):
     resid = Y_background - cosine_curve(X_background,*popt)
     sd = np.std(resid)
     return sd*3
+
+
 """
 Fit curves to diffraction pattern.
 
 return curve parameters
 """
-def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None):
+def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,max_curves=30):
     if noise == None:
         noise_threshold = calculate_background_noise(X,Y,background_start,background_end)
     else:
@@ -99,13 +96,16 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None)
     local_minima,_ = find_peaks(np.amax(Y) - Y)
     change_points = list(local_minima) + [len(X)-1]
     median = np.median(Y)
+
+    #make sure change points are further apart than the MIN_BLOCK_SIZE
     i = 0
     while i < len(change_points)-2:
         i+=1
-        if change_points[i+1] - change_points[i] < 20:
+        if change_points[i+1] - change_points[i] < MIN_BLOCK_SIZE:
             change_points.pop(i+1)
             i-=1
 
+    #make sure no change points are below the median
     i = 0
     while i < len(change_points)-2:
         i+=1
@@ -122,7 +122,7 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None)
     for i,c in enumerate(change_points[:-1]):
         block_X = X[change_points[i]:change_points[i+1]+1]
         block_Y = Y[change_points[i]:change_points[i+1]+1]
-        block_params = fit_curves_to_block(block_X,block_Y,noise_threshold)
+        block_params = fit_curves_to_block(block_X,block_Y,noise_threshold,max_curves)
         curve_params = curve_params + block_params
 
         for curve_p in block_params:
@@ -135,7 +135,7 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None)
         resids.append((block_X,resid))
         block_fits.append((block_X,[curve(x) for x in block_X]))
 
-
+    #function for the full curve fit
     def fit(x):
         loc = np.argmin(np.abs(X - x))
         block = 0
@@ -173,38 +173,41 @@ def fit_guess_curve_to_block(X,Y):
     cen = X[np.argmax(Y)] #peak center
     B = (X[-1] - X[0]) * 1 # 1% of block width
     try:
-        p0 = [np.max(Y)/100,cen,.01,.01,0]
-        bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,2,2,np.amax(Y)])
+        p0 = [np.max(Y)/100,cen,.01,.01,0]## PARAM
+        bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,2,2,np.amax(Y)])## PARAM
         params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
     except:
         try:
-            p0 = [np.max(Y)/100,cen,.01,.01,0]
-            bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,5,5,np.amax(Y)])
+            p0 = [np.max(Y)/100,cen,.01,.01,0]## PARAM
+            bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,5,5,np.amax(Y)])## PARAM
             params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
         except:
-            p0 = [np.max(Y)/100,cen,2,2,np.amax(Y)/100]
-            bounds = ([0,cen-B,2,2,0],[np.max(Y),cen+B,5,5,np.amax(Y)])
+            p0 = [np.max(Y)/100,cen,2,2,np.amax(Y)/100]## PARAM
+            bounds = ([0,cen-B,2,2,0],[np.max(Y),cen+B,5,5,np.amax(Y)])## PARAM
             params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
     return params
 
 """
 Itteratively fit curves to a block in the diffraction pattern
 """
-def fit_curves_to_block(X,Y,noise_threshold):
+def fit_curves_to_block(X,Y,noise_threshold,max_curves):
     all_params = np.array([])
     resid = Y.copy()
+
     num_curves = 0
-    #fit up to 4 curves
-    while not is_noise(resid,noise_threshold):#num_curves <= 4:
+    while not is_noise(resid,noise_threshold):
         num_curves += 1
+        if num_curves > max_curves:
+            #exit if the maximum number of curves has been fit
+            break
         #fit initial guess curve to residual
         params = fit_guess_curve_to_block(X,resid)
         all_params = np.append(all_params,params)
 
         # try to optimize all curves together for better
-        p0 = all_params
-        k = len(all_params)//5
-        bounds = ([0,np.min(X),0,0,0] * k,[np.max(Y),np.max(X),5,5,np.max(Y)]*k)
+        p0 = all_params## PARAM
+        k = len(all_params)//5## PARAM
+        bounds = ([0,np.min(X),0,0,0] * k,[np.max(Y),np.max(X),5,5,np.max(Y)]*k)## PARAM
         try:
             all_params,_ = curve_fit(multi_voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
             #recalculate residual
@@ -217,5 +220,7 @@ def fit_curves_to_block(X,Y,noise_threshold):
         if is_noise(resid,noise_threshold):
             break
 
-    #return parameters as a list of 4-lists where each 4-list is a curve
+    #return parameters as a list of 5-element-lists where each 5-element-list is
+    #the params for a curve
+    ## PARAM
     return [[all_params[i],all_params[i+1],all_params[i+2],all_params[i+3],all_params[i+4]] for i in range(0,len(all_params-1),5)]
