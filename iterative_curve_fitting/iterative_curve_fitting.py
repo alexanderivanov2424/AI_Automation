@@ -61,7 +61,15 @@ Note: full_file_name includes the path to the file, its name, and the .csv at th
 """
 def save_data_to_csv(full_file_name,dict):
     curve_params = dict['curve_params']
-    csv_data = [['I','Q','alpha','gamma','c']] + curve_params
+    for params in curve_params:
+        curve = lambda x : voigt(x,*params)
+        params[0] = curve(params[1]) - params[4]
+        #good approximation of FWHM
+        FG = 2*params[2] * np.sqrt(2*np.log(2))
+        FL= 2*params[3]
+        FWHM = .5346*FL + np.sqrt(.2166*FL*FL + FG * FG)
+        params.append(FWHM)
+    csv_data = [['I','Q','alpha','gamma','c','width']] + curve_params
     with open(full_file_name,"w+") as csv_file:
         csvWriter = csv.writer(csv_file,delimiter=',')
         csvWriter.writerows(csv_data)

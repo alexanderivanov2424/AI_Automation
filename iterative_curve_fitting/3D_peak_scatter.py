@@ -25,14 +25,16 @@ ax = fig.add_subplot(111, projection='3d')
 
 for loc in peakGrid.data.keys():
     x,y = peakGrid.coord(loc)
-    peaks = peakGrid.data_at_loc(loc)[:,1]
-    xs = [x for p in peaks]
-    ys = [y for p in peaks]
-    ax.scatter(xs, ys, peaks, marker='o')#,color = 'red')
+    for i,peak in enumerate(peakGrid.data_at_loc(loc)[:,1]):
+        if peakGrid.data_at_loc(loc)[i,0] > 10:
+            ax.scatter([x], [y], [peak], marker='o',color = 'red')
+    #xs = [x for p in peaks]
+    #ys = [y for p in peaks]
 
-ax.set_xlabel('X Label')
-ax.set_ylabel('Y Label')
-ax.set_zlabel('Z Label')
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Q')
 #ax.set_xlim3d(0, 150)
 #ax.set_ylim3d(0, 150)
 #ax.set_zlim3d(0, 1000)

@@ -9,7 +9,7 @@ dataGrid = DataGrid_TiNiSn_500C()
 
 
 times = []
-for loc in range(1,dataGrid.size,1):
+for loc in range(20,dataGrid.size+1,1):
     print(loc)
     ts = time.time()
 
@@ -66,10 +66,10 @@ for loc in range(1,dataGrid.size,1):
 
     plt.title(str(loc))
     plt.savefig("/home/sasha/Desktop/iterative_curve_fitting_save_test/plot_" + str(loc) + ".png")
-    plt.draw()
+    #plt.draw()
     #plt.show()
-    plt.pause(.0000001)
-    plt.cla()
+    #plt.pause(.0000001)
+    #plt.cla()
     sum = 0
     for t in times:
         sum += t
