@@ -14,6 +14,8 @@ All scripts are in python 3.6.8 (any python 3 version should be compatible)
 NOTE: Many scripts have variables/constants in the code and also near the top.
 These can be adjusted to modify functionality.
 
+NOTE: Some scripts have dependencies on scripts in other folder while some
+folders are completely independent. Check headers and imports.
 
 
 Running Scripts:

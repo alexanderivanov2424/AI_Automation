@@ -18,9 +18,11 @@ def get_adjacent_points(x,y,Q,I,FWHM):
     def dir(dx,dy):
         if not peakGrid.in_grid(x+dx,y+dy):
             return None
-        i = np.argmin(peakGrid.data_at(x+dx,y+dy)[:,2] - Q)
+        i = np.argmin(np.abs(peakGrid.data_at(x+dx,y+dy)[:,1] - Q))
         P = peakGrid.data_at(x+dx,y+dy)[i]
-        if Q-.5 < P[1] and P[1] < Q+.5:# and I * .9 < P[0] and P[0] < I*1.1:
+        #FWHM = .005
+        if Q-FWHM/4< P[1] and P[1] < Q+FWHM/4:
+        #if I*.9 < P[0] and P[0] < I*1.1:
             return [x+dx,y+dy,P[1],P[0],P[5]]
         return None
     points = []
@@ -70,12 +72,50 @@ def link_layer():
     return Layer
     #add to used points
 
+# 2D
 
+"""
+for i in range(100):
+    layer = link_layer()
+    max_I = np.max([P[3] for P in layer])
+    if len(layer) < 10 or len(layer) == 177:
+        continue
+    xs = []
+    ys = []
+    qs = []
+    for P in layer:
+        xs.append(P[0])
+        ys.append(P[1])
+        qs.append(P[2])
+        plt.scatter(xs,ys, color="red",marker='o',alpha=P[3]/max_I)
+    plt.xlim(0, 16)
+    plt.ylim(0, 16)
+    plt.show()
+    #plt.draw()
+    #plt.pause(.3)
+    #plt.cla()
+#ax.set_xlim3d(0, 15)
+#ax.set_ylim3d(0, 15)
+#ax.set_zlim3d(0, 6)
+plt.show()
+"""
+
+#3D
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-for i in range(10):
+for j in range(100):
+
     layer = link_layer()
+    #print(j)
+    #if j < 43:
+    #    continue
+    # 11, 20, 28, 30, 43
+    #if not j == 11:
+    #  continue
+    if not j in [11,20,28,30,43]:
+        continue
+
     xs = []
     ys = []
     qs = []
@@ -84,10 +124,11 @@ for i in range(10):
         ys.append(P[1])
         qs.append(P[2])
     ax.scatter(xs,ys,qs, marker='o',alpha=1)
-
-
-
 ax.set_xlim3d(0, 15)
 ax.set_ylim3d(0, 15)
-ax.set_zlim3d(0, 6)
+#ax.set_zlim3d(0, 6)
 plt.show()
+    #plt.title(j)
+    #plt.draw()
+    #plt.pause(1)
+    #plt.cla()
