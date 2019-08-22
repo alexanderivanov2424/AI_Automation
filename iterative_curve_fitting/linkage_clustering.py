@@ -1,3 +1,13 @@
+"""
+Link peaks together based on Q, FWHM, and grid location
+to identify phase transitions.
+
+Produces "layers" where a given peak propagates through a portion of the wafer.
+
+3D and 2D visuals are produced
+
+"""
+
 
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import matplotlib.pyplot as plt
@@ -13,7 +23,9 @@ peakGrid = DataGrid(data_dir,regex)
 
 used_points = set() #dictionary of used points
 
-
+"""
+Get the adjacent peaks that "connect" to a given peak
+"""
 def get_adjacent_points(x,y,Q,I,FWHM):
     def dir(dx,dy):
         if not peakGrid.in_grid(x+dx,y+dy):
@@ -32,7 +44,9 @@ def get_adjacent_points(x,y,Q,I,FWHM):
             points.append(p)
     return points
 
-
+"""
+Find the largest intensity peak that does not yet belong to a layer
+"""
 def find_max_peak():
     max_P = []
     max_I = 0
@@ -47,7 +61,9 @@ def find_max_peak():
             max_P = [x,y,P[1],P[0],P[5]]
     return max_P
 
-
+"""
+Link a full layer and return associated peaks
+"""
 def link_layer():
     P0 = find_max_peak()
     Border = [P0]
