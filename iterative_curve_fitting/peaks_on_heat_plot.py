@@ -35,7 +35,7 @@ for i in range(len(dataGrid.row_sums)):
 skip = 0
 for locations in layers:
     skip += 1
-    if skip < 0: # skip this many cross sections of the grid
+    if skip < 7: # skip this many cross sections of the grid
         continue
 
     lst = []

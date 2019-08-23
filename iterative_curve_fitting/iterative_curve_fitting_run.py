@@ -9,7 +9,7 @@ dataGrid = DataGrid_TiNiSn_500C()
 
 
 times = []
-for loc in range(20,dataGrid.size+1,1):
+for loc in range(74,dataGrid.size+1,1):
     print(loc)
     ts = time.time()
 
@@ -20,7 +20,7 @@ for loc in range(20,dataGrid.size+1,1):
 
     dict = fit_curves_to_data(X,Y,1.5,1.81,noise=5)
     times.append(time.time() - ts)
-    save_data_to_csv("/home/sasha/Desktop/iterative_curve_fitting_save_test/params_" + str(loc) + ".csv",dict)
+    #save_data_to_csv("/home/sasha/Desktop/iterative_curve_fitting_save_test/params_" + str(loc) + ".csv",dict)
 
     param_list = dict['curve_params']
     change_points = dict['change_points']
@@ -67,7 +67,7 @@ for loc in range(20,dataGrid.size+1,1):
     plt.title(str(loc))
     plt.savefig("/home/sasha/Desktop/iterative_curve_fitting_save_test/plot_" + str(loc) + ".png")
     #plt.draw()
-    #plt.show()
+    plt.show()
     #plt.pause(.0000001)
     #plt.cla()
     sum = 0

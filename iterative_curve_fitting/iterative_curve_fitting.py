@@ -259,6 +259,11 @@ def fit_curves_to_block(X,Y,noise_threshold,max_curves):
         except:
             #if fit fails return peak params as is
             break
+
+        #plt.plot(X,Y)
+        #plt.plot(X,curve(X))
+        #plt.plot(X,resid)
+        #plt.show()
         #if residual after optimization is noise finish
         if is_noise(resid,noise_threshold):
             break

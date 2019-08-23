@@ -1,4 +1,12 @@
+"""
+Cosine Based clustering with progresively more clusters.
 
+Each time a cluster is split the child clusters take on the
+parent clusters color based on relative similarity.
+
+Shows how clusters are broken up and which portions persist.
+
+"""
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
 from sklearn.cluster import AgglomerativeClustering
@@ -14,17 +22,22 @@ warnings.simplefilter("ignore")
 # LOAD DATA
 dataGrid = DataGrid_TiNiSn_500C()
 
-"""cosine similarity of two vectors"""
+"""
+cosine similarity of two vectors
+"""
 def similarity_vector(A,B):
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
     return cosine
 
-"""cosine similarity function using two grid positions"""
+"""
+cosine similarity function using two grid positions
+"""
 def similarity(d1,d2):
     a = dataGrid.data[d1][:,1]
     b = dataGrid.data[d2][:,1]
     return similarity_vector(a,b)
 
+#Create a similarity matrix for clustering
 points = [[6,1]]
 for val in range(2,178):
     x,y = dataGrid.coord(val)
@@ -36,11 +49,10 @@ for x in range(size):
     for y in range(size):
         D[x,y] = 1 - similarity(x+1,y+1)
 
-
+"""
+Get the everage values for each cluster
+"""
 def get_averages(agg,clusters):
-    """
-    Get the everage values for each cluster
-    """
     grouped_data = [[] for x in range(clusters)]
     for loc,val in enumerate(agg.labels_):
         grouped_data[val].append(dataGrid.data_at_loc(loc+1)[:,1])
@@ -48,10 +60,10 @@ def get_averages(agg,clusters):
     averages = [np.nanmean(x,axis=0) for x in grouped_data]
     return averages
 
+"""
+Get the locations of the average points in the clustering
+"""
 def get_avg_loc(agg,clusters,averages):
-    """
-    Get the locations of the average points in the clustering
-    """
     points_x = [-1 for x in range(clusters)]
     points_y = [-1 for x in range(clusters)]
     points_loc = [-1 for x in range(clusters)]
