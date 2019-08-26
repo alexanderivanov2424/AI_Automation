@@ -85,15 +85,15 @@ def find_max_peak():
                 continue
             max_I = P[0]
             max_P = [x,y,i]
-    return max_P
+    return max_P,max_I
 
 """
 Link a full layer and return associated peaks
 """
 def link_layer():
-    P0 = find_max_peak()
+    P0,max_I = find_max_peak()
     if P0 == []:
-        return None
+        return None,0
     Border = [P0]
     Layer = [P0]
     used_grid_locs = set()
@@ -113,7 +113,7 @@ def link_layer():
 
     for point in Layer:
         used_points.add((point[0],point[1],point[2]))
-    return Layer
+    return Layer,max_I
 
 
 """
@@ -124,14 +124,14 @@ def link_layer():
 layer_list = []
 
 while True:
-    layer = link_layer()
+    layer,max_I = link_layer()
     if layer == None:
         break
     if len(layer) == 1:
         continue
-    layer_list.append(layer)
-layer_list = sorted(layer_list,key=lambda x:200 - len(x))
-
+    layer_list.append((layer,max_I))
+#layer_list = sorted(layer_list,key=lambda x:200 - len(x))
+layer_list = [L for L in layer_list if len(L[0]) > 5]
 
 #generate colors
 N = len(layer_list)
@@ -140,9 +140,11 @@ RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
 np.random.shuffle(RGB_tuples)
 
 #print(np.median([len(L) for L in layer_list]))
-for i,layer in enumerate(layer_list):
-    if len(layer) <= 5:
+for i,layer_tuple in enumerate(layer_list):
+    layer = layer_tuple[0]
+    if i >= 36:
         continue
+    plt.subplot(6,6, i+1)
     max_I = np.max([peakGrid.data_at(P[0],P[1])[P[2],0] for P in layer])
     xs = []
     ys = []
@@ -158,10 +160,10 @@ for i,layer in enumerate(layer_list):
     plt.xlim(0, 16)
     plt.ylim(0, 16)
     #plt.show()
-    plt.draw()
-    plt.pause(.01)
+    #plt.draw()
+    #plt.pause(.01)
     #plt.cla()
-
+plt.show()
 
 
 """
