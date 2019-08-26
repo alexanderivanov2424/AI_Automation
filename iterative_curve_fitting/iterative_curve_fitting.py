@@ -22,10 +22,6 @@ import matplotlib.pyplot as plt
 from scipy.special import wofz
 import csv
 
-#CONSTANTS
-MIN_BLOCK_SIZE = 20
-
-
 
 """
 Voigt Profile used for fitting
@@ -110,7 +106,7 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,
     change_points = list(local_minima) + [len(X)-1]
     median = np.median(Y)
 
-    #make sure change points are further apart than the MIN_BLOCK_SIZE
+    #make sure change points are further apart than the min_block_size
     i = 0
     while i < len(change_points)-2:
         i+=1
