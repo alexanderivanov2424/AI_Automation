@@ -31,8 +31,10 @@ MIN_BLOCK_SIZE = 20
 Voigt Profile used for fitting
 
 NOTE: When adjusting the number of parameters code needs to be modified.
-(At the ## PARAM tags)
+change the NUM_PARAMS variable respectively and adjust code at the ## PARAM tags
 """
+NUM_PARAMS = 5
+
 def voigt(x, amp,cen,alpha,gamma,c):
     sigma = alpha / np.sqrt(2 * np.log(2)) ## PARAM
     return amp * np.real(wofz(((x-cen) + 1j*gamma)/sigma/np.sqrt(2))) / sigma / np.sqrt(2*np.pi)+c
@@ -42,8 +44,8 @@ Combination of multiple Voigt profiles
 """
 def multi_voigt(x,*params):
     sum = 0.0
-    for i in range(0,len(params)-1,5):## PARAM
-        sum += voigt(x,params[i],params[i+1],params[i+2],params[i+3],params[i+4])## PARAM
+    for i in range(0,len(params)-1,NUM_PARAMS):
+        sum += voigt(x,*params[i:i+NUM_PARAMS])
     return sum
 
 """
@@ -248,8 +250,8 @@ def fit_curves_to_block(X,Y,noise_threshold,max_curves):
         all_params = np.append(all_params,params)
 
         # try to optimize all curves together for better
-        p0 = all_params## PARAM
-        k = len(all_params)//5## PARAM
+        p0 = all_params
+        k = len(all_params)//NUM_PARAMS
         bounds = ([0,np.min(X),0,0,0] * k,[np.max(Y),np.max(X),5,5,np.max(Y)]*k)## PARAM
         try:
             all_params,_ = curve_fit(multi_voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
@@ -270,5 +272,5 @@ def fit_curves_to_block(X,Y,noise_threshold,max_curves):
 
     #return parameters as a list of 5-element-lists where each 5-element-list is
     #the params for a curve
-    ## PARAM
-    return [[all_params[i],all_params[i+1],all_params[i+2],all_params[i+3],all_params[i+4]] for i in range(0,len(all_params-1),5)]
+
+    return [all_params[i:i+NUM_PARAMS] for i in range(0,len(all_params-1),NUM_PARAMS)]
