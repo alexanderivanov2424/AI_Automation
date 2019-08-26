@@ -1,7 +1,18 @@
+"""
+Iterative Curve Fitting Algorithm Example
+
+Uses files in given directories to perform iterative curve fitting
+and saves results.
+
+Independent code. Does not rely on dataGrid object
+
+"""
+
 
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 
 from iterative_curve_fitting.iterative_curve_fitting import fit_curves_to_data,save_data_to_csv
@@ -34,7 +45,7 @@ MIN_BLOCK_SIZE = 20
 """
 If false plots are saved but not displayed
 """
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 
@@ -64,6 +75,7 @@ for file in files:
     except:
         data_array = data_array[1:]
     data = data_array.astype(np.float)
+    #load X and Y data for a diffraction pattern
     X = data[:,0]
     Y = data[:,1]
 
@@ -115,7 +127,20 @@ for file in files:
         y = fit(x)
         plt.plot([x],[y],'ro')
 
+    from matplotlib.lines import Line2D
+
     plt.title(os.path.splitext(file)[0])
+    L1 = mpatches.Patch(color='black', label='Data')
+    L2 = mpatches.Patch(color='blue', label='Curve fit')
+    L3 = mpatches.Patch(color='green', label='Residual')
+    L4 = mpatches.Patch(color='red', label='Blocks')
+    L5 = mpatches.Patch(color='orange', label='Individual Curves')
+
+
+    plt.legend(handles=[L1,L2,L3,L4,L5])
+
+
+
     plt.savefig(os.path.join(path_to_save_dir,os.path.splitext(file)[0] + ".png"))
     print("## Plot saved to: " + os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_plot.png"))
 
