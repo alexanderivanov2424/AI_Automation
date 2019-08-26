@@ -140,7 +140,7 @@ RGB_tuples = list(map(lambda x: colorsys.hsv_to_rgb(*x), HSV_tuples))
 np.random.shuffle(RGB_tuples)
 
 for i,layer in enumerate(layer_list):
-    if len(layer) <= 20:
+    if len(layer) <= 30:
         continue
     max_I = np.max([peakGrid.data_at(P[0],P[1])[P[2],0] for P in layer])
     xs = []
@@ -152,14 +152,13 @@ for i,layer in enumerate(layer_list):
         qs.append(peakGrid.data_at(P[0],P[1])[P[2],1])
         I = peakGrid.data_at(P[0],P[1])[P[2],0]
         alpha = np.power(I/max_I,2)
-        alpha = 1
         plt.scatter(xs,ys, color=RGB_tuples[i],marker='o',alpha=alpha)
     plt.xlim(0, 16)
     plt.ylim(0, 16)
-    #plt.show()
-    plt.draw()
-    plt.pause(.5)
-    plt.cla()
+    plt.show()
+    #plt.draw()
+    #plt.pause(1)
+    #plt.cla()
 
 
 

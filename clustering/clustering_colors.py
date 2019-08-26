@@ -1,4 +1,15 @@
 
+"""
+Cosine Based clustering with informative cluster colors
+
+Each time a cluster is split the child clusters take on the
+parent clusters color based on relative similarity.
+
+Shows how clusters are broken up and which portions persist.
+
+"""
+
+
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
 from sklearn.cluster import AgglomerativeClustering

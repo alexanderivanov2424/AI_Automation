@@ -1,3 +1,10 @@
+"""
+Cosine based Clustering
+
+Produces a set of clustering images along with cluster centers and cluster membership.
+Darker locations are further from the cluster center in terms of cosine similarity.
+
+"""
 
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
@@ -129,6 +136,7 @@ l9 = list('sddldl')
 l9x = getPointsX(1.3,l9.copy())
 l9y = getPointsY(9.5,l9.copy())
 
+#uncomment to plot clustering lines from matplotlib code
 '''
 grid[grid==0] = np.nan
 plt.figure(1)

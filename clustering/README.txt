@@ -17,5 +17,11 @@ cluster_split_analysis - Script for analyzing the differences between clusters a
 clustering_colors_linear - Scrip for visualizing how clusters are splitting in
                            terms of order and location in the grid.
 
-clustering_colors_progression - Script for visualizing the progressive splitting fo
+clustering_colors_progression - Script for visualizing the progressive splitting of
                                 clusters.
+
+clustering_colors - Script for visualizing the way clusters split in a given clustering
+
+clustering - Script for producing a cosine clustering for a range of clusters.
+
+clusterplots - Diagnostic script for comparing produced clusterings

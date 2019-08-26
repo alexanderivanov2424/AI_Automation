@@ -1,4 +1,11 @@
+"""
+Plot N and N+1 cosine clusters for analysis.
 
+Shows how clusters are split and shows diffraction data for the split cluster.
+
+Plots diffraction pattern for the parent cluster center and the two children clusters centers.
+
+"""
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
 from pyclustering.cluster.kmeans import kmeans
