@@ -66,6 +66,7 @@ Note: full_file_name includes the path to the file, its name, and the .csv at th
 def save_data_to_csv(full_file_name,dict): ## PARAM
     curve_params = dict['curve_params']
     for params in curve_params:
+        #calculate peak Intensity
         curve = lambda x : voigt(x,*params)
         params[0] = curve(params[1]) - params[4]
         #good approximation of FWHM
@@ -100,7 +101,7 @@ Fit curves to diffraction pattern.
 
 return curve parameters
 """
-def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,max_curves=30):
+def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,max_curves=30,min_block_size=20):
     if noise == None:
         noise_threshold = calculate_background_noise(X,Y,background_start,background_end)
     else:
@@ -113,7 +114,7 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,
     i = 0
     while i < len(change_points)-2:
         i+=1
-        if change_points[i+1] - change_points[i] < MIN_BLOCK_SIZE:
+        if change_points[i+1] - change_points[i] < min_block_size:
             change_points.pop(i+1)
             i-=1
 
@@ -264,15 +265,10 @@ def fit_curves_to_block(X,Y,noise_threshold,max_curves):
             #if fit fails return peak params as is
             break
 
-        #plt.plot(X,Y)
-        #plt.plot(X,curve(X))
-        #plt.plot(X,resid)
-        #plt.show()
         #if residual after optimization is noise finish
         if is_noise(resid,noise_threshold):
             break
 
     #return parameters as a list of 5-element-lists where each 5-element-list is
     #the params for a curve
-
-    return [all_params[i:i+NUM_PARAMS] for i in range(0,len(all_params-1),NUM_PARAMS)]
+    return [list(all_params[i:i+NUM_PARAMS]) for i in range(0,len(all_params-1),NUM_PARAMS)]
