@@ -28,26 +28,28 @@ MIN_BLOCK_SIZE = 20
 
 
 """
-Voigt Profile used for fitting
+split pearson Profile used for fitting
 
 NOTE: When adjusting the number of parameters code needs to be modified.
 change the NUM_PARAMS variable respectively and adjust code at the ## PARAM tags
-
-specifically the fit_curves_to_block, fit_guess_curve_to_block, and save_data_to_csv
 """
-NUM_PARAMS = 5
+NUM_PARAMS = 8
 
-def voigt(x, amp,cen,alpha,gamma,c): ##PARAM
+def split_pearson(x, amp,amp_,cen,alpha,gamma,alpha_,gamma_,c): ## PARAM
+    if x > cen:
+        amp = amp_
+        alpha = alpha_
+        gamma = gamma_
     sigma = alpha / np.sqrt(2 * np.log(2))
     return amp * np.real(wofz(((x-cen) + 1j*gamma)/sigma/np.sqrt(2))) / sigma / np.sqrt(2*np.pi)+c
 
 """
-Combination of multiple Voigt profiles
+Combination of multiple split pearson profiles
 """
-def multi_voigt(x,*params):
+def multi_split_pearson(x,*params):
     sum = 0.0
     for i in range(0,len(params)-1,NUM_PARAMS):
-        sum += voigt(x,*params[i:i+NUM_PARAMS])
+        sum += split_pearson(x,*params[i:i+NUM_PARAMS])
     return sum
 
 """
@@ -66,7 +68,7 @@ Note: full_file_name includes the path to the file, its name, and the .csv at th
 def save_data_to_csv(full_file_name,dict): ## PARAM
     curve_params = dict['curve_params']
     for params in curve_params:
-        curve = lambda x : voigt(x,*params)
+        curve = lambda x : split_pearson(x,*params)
         params[0] = curve(params[1]) - params[4]
         #good approximation of FWHM
         FG = 2*params[2] * np.sqrt(2*np.log(2))
@@ -148,15 +150,15 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,
             resids.append((block_X,resid))
             block_fits.append((block_X,[a*x +b for x in block_X]))
         else:
-            #block with peaks (multi voigt)
+            #block with peaks (multi split pearson)
             curve_params = curve_params + block_params
 
             for curve_p in block_params:
-                curve_t = lambda x : voigt(x,*curve_p)
+                curve_t = lambda x : split_pearson(x,*curve_p)
                 block_curves.append((block_X,[curve_t(x) for x in block_X]))
 
 
-            curve = lambda x : multi_voigt(x,*[p for params in block_params for p in params])
+            curve = lambda x : multi_split_pearson(x,*[p for params in block_params for p in params])
             resid = np.array([block_Y[i] - curve(x) for i,x in enumerate(block_X)])
             resids.append((block_X,resid))
             block_fits.append((block_X,[curve(x) for x in block_X]))
@@ -175,7 +177,7 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,
     curve_centers = []
     curve_I = []
     for curve_p in curve_params:
-        curve = lambda x : voigt(x,*curve_p)
+        curve = lambda x : split_pearson(x,*curve_p)
         curve_centers.append(curve_p[1])
         curve_I.append(curve(curve_p[1]))
     #create return dictionary
@@ -184,7 +186,7 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,
     dict['change_points'] = change_points
     dict['Q'] = curve_centers
     dict['I'] = curve_I
-    dict['profile'] = voigt
+    dict['profile'] = split_pearson
     dict['residuals'] = resids
     dict['block curves'] = block_curves
     dict['block fits'] = block_fits
@@ -192,25 +194,25 @@ def fit_curves_to_data(X,Y,background_start=None,background_end=None,noise=None,
     return dict
 
 """
-Fit a single Voigt profile to data
+Fit a single split pearson profile to data
 return curve parameters.
 """
 def fit_guess_curve_to_block(X,Y):
     cen = X[np.argmax(Y)] #peak center
     B = (X[-1] - X[0]) * 1 # 1% of block width
     try:
-        p0 = [np.max(Y)/100,cen,.01,.01,0]## PARAM
-        bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,2,2,np.amax(Y)])## PARAM
-        params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
+        p0 = [np.max(Y)/100,np.max(Y)/100,cen,.01,.01,.01,.01,0]## PARAM
+        bounds = ([0,0,cen-B,0,0,0,0,0],[np.max(Y),np.max(Y),cen+B,2,2,2,2,np.amax(Y)])## PARAM
+        params,_ = curve_fit(split_pearson,X,Y,p0=p0,bounds=bounds,maxfev=2000)
     except:
         try:
-            p0 = [np.max(Y)/100,cen,.01,.01,0]## PARAM
-            bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,5,5,np.amax(Y)])## PARAM
-            params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
+            p0 = [np.max(Y)/100,np.max(Y)/100,cen,.01,.01,.01,.01,0]## PARAM
+            bounds = ([0,0,cen-B,0,0,0,0,0],[np.max(Y),np.max(Y),cen+B,5,5,5,5,np.amax(Y)])## PARAM
+            params,_ = curve_fit(split_pearson,X,Y,p0=p0,bounds=bounds,maxfev=2000)
         except:
-            p0 = [np.max(Y)/100,cen,2,2,np.amax(Y)/100]## PARAM
-            bounds = ([0,cen-B,2,2,0],[np.max(Y),cen+B,5,5,np.amax(Y)])## PARAM
-            params,_ = curve_fit(voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
+            p0 = [np.max(Y)/100,np.max(Y)/100,cen,2,2,2,2,np.amax(Y)/100]## PARAM
+            bounds = ([0,0,cen-B,2,2,2,2,0],[np.max(Y),np.max(Y),cen+B,5,5,5,5,np.amax(Y)])## PARAM
+            params,_ = curve_fit(split_pearson,X,Y,p0=p0,bounds=bounds,maxfev=2000)
     return params
 
 """
@@ -254,11 +256,11 @@ def fit_curves_to_block(X,Y,noise_threshold,max_curves):
         # try to optimize all curves together for better
         p0 = all_params
         k = len(all_params)//NUM_PARAMS
-        bounds = ([0,np.min(X),0,0,0] * k,[np.max(Y),np.max(X),5,5,np.max(Y)]*k)## PARAM
+        bounds = ([0,0,np.min(X),0,0,0,0,0] * k,[np.max(Y),np.max(Y),np.max(X),5,5,5,5,np.max(Y)]*k)## PARAM
         try:
-            all_params,_ = curve_fit(multi_voigt,X,Y,p0=p0,bounds=bounds,maxfev=2000)
+            all_params,_ = curve_fit(multi_split_pearson,X,Y,p0=p0,bounds=bounds,maxfev=2000)
             #recalculate residual
-            curve = lambda x : multi_voigt(x,*all_params)
+            curve = lambda x : multi_split_pearson(x,*all_params)
             resid = np.array([Y[i] - curve(x) for i,x in enumerate(X)])
         except:
             #if fit fails return peak params as is
