@@ -117,12 +117,12 @@ def link_layer(locs,is_vert):
 
 V_list = [3,10,20,32,45,59,74,89,104,119,133,146,158,168,175]
 H_list = [82,83,84,85,86,87,88,89,90,91,92,93,94,95,96]
-locations = V_list
+locations = H_list
 
 layer_labels = {}
 layer_num = 0
 while len(layer_labels.keys()) < total_peaks:
-    layer = link_layer(locations,True)
+    layer = link_layer(locations,False)
     if layer == None:
         break
     if len(layer) == 1:

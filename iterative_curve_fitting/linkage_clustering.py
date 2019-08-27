@@ -10,17 +10,20 @@ Produces "layers" where a given peak propagates through a portion of the wafer.
 
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import matplotlib.pyplot as plt
+import matplotlib
 import colorsys
+
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.decomposition import PCA
 
 import numpy as np
 
-from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
+from data_loading.data_grid_TiNiSn import DataGrid
 
 
 """
 Load Data and Peak Data
 """
-dataGrid = DataGrid_TiNiSn_500C()
 
 
 data_dir = "/home/sasha/Desktop/iterative_curve_fitting_save_test/"
@@ -116,10 +119,6 @@ def link_layer():
     return Layer,max_I
 
 
-"""
-# 2D
-"""
-
 
 layer_list = []
 
@@ -132,6 +131,47 @@ while True:
     layer_list.append((layer,max_I))
 #layer_list = sorted(layer_list,key=lambda x:200 - len(x))
 layer_list = [L for L in layer_list if len(L[0]) > 5]
+
+
+peak_reduced = np.zeros((peakGrid.size,len(layer_list)))
+
+for i,L in enumerate(layer_list):
+    for P in L[0]:
+        peak_reduced[peakGrid.grid_num(P[0],P[1])-1,i] = 1#peakGrid.data_at(P[0],P[1])[P[2],0]
+
+pca = PCA(n_components = 'mle',svd_solver='full').fit_transform(peak_reduced)
+print(len(pca[0]))
+
+def cluster_from_peak_reduced(i):
+    agg = AgglomerativeClustering(n_clusters=i).fit(pca)
+
+    hues = [float(float(x)/float(i)) for x in range(1,i+1)]
+
+    cluster_grid = np.zeros(shape = (15,15,3))
+    for val in range(1,178):
+        x,y = peakGrid.coord(val)
+        cluster = agg.labels_[val-1]
+        if cluster == -1:
+            continue
+        cluster_grid[y-1][15-x] = matplotlib.colors.hsv_to_rgb([hues[cluster],1,1])
+    return cluster_grid
+
+for i in range(2,20):
+    cg = cluster_from_peak_reduced(i)
+    plt.imshow(cg)
+    for j in range(peakGrid.size):
+        x,y = peakGrid.coord(j+1)
+        plt.annotate(str(j+1),(15-x-.4,y-1-.4),size=6)
+    plt.axis("off")
+    plt.gca().invert_yaxis()
+    plt.title(i)
+    plt.show()
+
+"""
+"""
+# 2D
+"""
+
 
 #generate colors
 N = len(layer_list)
@@ -166,23 +206,14 @@ for i,layer_tuple in enumerate(layer_list):
 plt.show()
 
 
-"""
+
 #3D
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-layer_list = []
 
-while True:
-    layer = link_layer()
-    if layer == None:
-        break
-    if len(layer) == 1:
-        continue
-    layer_list.append(layer)
-
-
-for layer in layer_list:
+for L in layer_list:
+    layer = L[0]
     xs = []
     ys = []
     qs = []

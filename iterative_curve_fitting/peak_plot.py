@@ -19,7 +19,7 @@ regex = """params_(?P<num>.*?).csv"""
 peakGrid = DataGrid(data_dir,regex)
 
 # grid locations to plot
-locations = [12,22,34]
+locations = [152,151,150,149,148,147,137,136,123]
 
 #how much to shift each grid location vertically
 #(makes it easier to see peaks)

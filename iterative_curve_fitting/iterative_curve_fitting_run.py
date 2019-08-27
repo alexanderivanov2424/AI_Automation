@@ -45,7 +45,7 @@ MIN_BLOCK_SIZE = 20
 """
 If false plots are saved but not displayed
 """
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 
