@@ -1,26 +1,88 @@
+"""
+Iterative Curve Fitting Algorithm Example
 
-import time
+Uses files in given directories to perform iterative curve fitting
+and saves results.
+
+Independent code. Does not rely on dataGrid object
+
+Note: Implemented with split voigt peak instead of regular voigt
+
+"""
+
+
+import pandas as pd
+import os
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 
 from iterative_curve_fitting.iterative_curve_fitting_splitpearson import fit_curves_to_data,save_data_to_csv
-from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
-dataGrid = DataGrid_TiNiSn_500C()
+
+path_to_files = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C"
+path_to_save_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/params"
 
 
-times = []
-for loc in range(74,dataGrid.size+1,1):
-    print(loc)
-    ts = time.time()
 
-    X = dataGrid.data_at_loc(loc)[:,0]
-    Y = dataGrid.data_at_loc(loc)[:,1]
-    #plt.plot(X,Y)
-    #plt.show()
 
-    dict = fit_curves_to_data(X,Y,1.5,1.81,noise=5)
-    times.append(time.time() - ts)
-    #save_data_to_csv("/home/sasha/Desktop/iterative_curve_fitting_save_test/params_" + str(loc) + ".csv",dict)
+"""
+Noise Level
+Peaks below this intensity will not be considered
+"""
+NOISE = 5
+
+
+"""
+Max Curve Fit
+Maximum number of curve that should be fit to a block
+"""
+max_curves=30
+
+"""
+Smallest allowable block
+"""
+MIN_BLOCK_SIZE = 20
+
+
+"""
+If false plots are saved but not displayed
+"""
+SHOW_PLOTS = True
+
+
+
+
+try:
+    os.stat(path_to_save_dir)
+except:
+    print("Creating directory: " + path_to_save_dir)
+    os.mkdir(path_to_save_dir)
+
+files = os.listdir(path_to_files)
+
+
+for file in files:
+    if not os.path.splitext(file)[1] == ".csv":
+        print("Skipping: " + file)
+        continue
+    print("Reading File: " + file)
+
+    try:
+        data_array = np.array(pd.read_csv(os.path.join(path_to_files, file),header=None))
+    except:
+        print("## Bad Formatting in file: " + file)
+        continue
+    try:
+        data_array[0].astype(np.float)
+    except:
+        data_array = data_array[1:]
+    data = data_array.astype(np.float)
+    #load X and Y data for a diffraction pattern
+    X = data[:,0]
+    Y = data[:,1]
+
+    print("## Fitting ...")
+    dict = fit_curves_to_data(X,Y,1.5,1.81,noise=NOISE,max_curves=max_curves,min_block_size=MIN_BLOCK_SIZE)
 
     param_list = dict['curve_params']
     change_points = dict['change_points']
@@ -29,6 +91,9 @@ for loc in range(74,dataGrid.size+1,1):
     block_curves = dict['block curves']
     block_fits = dict['block fits']
     fit = dict['fit']
+
+
+    fig = plt.figure(figsize=(20,10))
 
     # plot blocks
     [plt.axvline(X[c],color="red") for c in change_points]
@@ -46,7 +111,7 @@ for loc in range(74,dataGrid.size+1,1):
     for resid in residuals:
         combined_resid += np.sum(np.abs(resid[1])) #sum y axis in residuals
         plt.plot(*resid,color="green")
-    print("Integrated Residual: ", combined_resid)
+    print("## Integrated Residual: ", combined_resid)
 
     #plot fit for each block
     for block_fit in block_fits:
@@ -64,29 +129,28 @@ for loc in range(74,dataGrid.size+1,1):
         y = fit(x)
         plt.plot([x],[y],'ro')
 
-    plt.title(str(loc))
-    plt.savefig("/home/sasha/Desktop/iterative_curve_fitting_save_test/plot_" + str(loc) + ".png")
-    #plt.draw()
-    plt.show()
-    #plt.pause(.0000001)
-    #plt.cla()
-    sum = 0
-    for t in times:
-        sum += t
-    print("average run time: ",(sum / len(times)))
+    from matplotlib.lines import Line2D
+
+    plt.title(os.path.splitext(file)[0])
+    L1 = mpatches.Patch(color='black', label='Data')
+    L2 = mpatches.Patch(color='blue', label='Curve fit')
+    L3 = mpatches.Patch(color='green', label='Residual')
+    L4 = mpatches.Patch(color='red', label='Blocks')
+    L5 = mpatches.Patch(color='orange', label='Individual Curves')
 
 
-print(times)
-#data from a single run
-"""
-times = [6.301682233810425, 16.92291784286499, 10.737854957580566, 22.882227659225464, 22.725654363632202, 10.6413893699646, 39.58832812309265, 12.174431562423706, 11.89884614944458, 16.707190990447998, 7.260808229446411, 10.974231004714966, 21.931780338287354, 4.607523202896118, 3.5347440242767334, 5.46756649017334, 2.446345567703247, 7.929077386856079, 6.316591024398804, 16.969331741333008, 10.406744956970215, 8.09963607788086, 3.933593273162842, 9.527121305465698, 40.676209926605225, 8.338492393493652, 2.8368754386901855, 5.768939971923828, 4.648128271102905, 5.61580228805542, 6.4636311531066895, 12.03645634651184, 10.88139295578003, 4.26952052116394, 8.606700897216797, 5.443879842758179, 17.192810535430908, 23.947795391082764, 3.9366235733032227, 12.523558139801025, 10.360355138778687, 12.535735368728638, 3.8776187896728516, 6.196102142333984, 3.649614095687866, 8.940545797348022, 16.648099184036255, 15.806100606918335, 6.154057025909424, 8.675799369812012, 2.133884906768799, 5.619309663772583, 8.266065120697021, 21.00007653236389, 8.734087228775024, 4.112402677536011, 3.2562217712402344, 7.799783706665039, 6.596013307571411, 6.628335475921631, 36.28335499763489, 11.510373830795288, 3.6027164459228516, 6.494966745376587, 3.594066619873047, 6.9498772621154785, 3.0863118171691895, 5.141805171966553, 3.082204580307007, 5.511339426040649, 6.071778774261475, 6.552772283554077, 6.897106170654297, 2.2373383045196533, 7.933006525039673, 6.105613708496094, 5.318901300430298, 4.406052589416504, 1.5632920265197754, 10.895503282546997, 3.641314744949341, 2.0846502780914307, 6.277037143707275, 3.583881139755249, 3.025390863418579, 3.136662721633911, 4.4379212856292725, 27.440978527069092, 1.4697606563568115, 1.9026298522949219, 2.6247541904449463, 9.958818435668945, 6.884371519088745, 2.203153133392334, 2.039736032485962, 2.2330737113952637, 5.783994674682617, 6.763185977935791, 6.966829299926758, 5.943392515182495, 6.063627243041992, 96.31507349014282, 2.064793586730957, 0.9242663383483887, 1.7451913356781006, 5.469080686569214, 4.044744491577148, 2.072885751724243, 6.507760524749756, 3.632136344909668, 0.9840214252471924, 29.379598140716553, 16.412477731704712, 10.652379035949707, 44.869856119155884, 8.430471897125244, 2.7420432567596436, 1.1057848930358887, 0.9485211372375488, 1.1428210735321045, 3.693537950515747, 3.407567262649536, 11.937076091766357, 10.020727396011353, 2.9431521892547607, 5.113388299942017, 18.080031871795654, 67.44938683509827, 25.98822045326233, 5.1941237449646, 8.906480550765991, 1.110703945159912, 0.7897026538848877, 1.0923237800598145, 3.3031487464904785, 2.10196852684021, 13.999672412872314, 1.9503662586212158, 1.814530372619629, 17.136334896087646, 7.441228628158569, 16.470415592193604, 36.73160696029663, 2.8216090202331543, 1.3258552551269531, 6.843764543533325, 1.9488065242767334, 2.066188097000122, 3.8620142936706543, 11.189279556274414, 1.1241638660430908, 1.662032127380371, 9.941692352294922, 37.35075640678406, 3.5945558547973633, 2.9821505546569824, 1.2300207614898682, 1.9498562812805176, 1.4297003746032715, 2.7422983646392822, 5.49319052696228, 1.1576316356658936, 0.36839914321899414, 6.374582290649414, 2.9808132648468018, 2.060727834701538, 1.7591526508331299, 1.1687355041503906, 3.7581253051757812, 2.55657696723938, 2.3821141719818115, 0.36884474754333496, 1.2232835292816162, 0.8658690452575684, 0.5626134872436523, 1.2398653030395508]
-"""
-plt.plot([t/60 for t in times])
-plt.show()
+    plt.legend(handles=[L1,L2,L3,L4,L5])
 
 
-sums = [0]
-for t in times:
-    sums.append(sums[-1] + t)
-plt.plot([s/60 for s in sums])
-plt.show()
+
+    plt.savefig(os.path.join(path_to_save_dir,os.path.splitext(file)[0] + ".png"))
+    print("## Plot saved to: " + os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_plot.png"))
+
+    save_data_to_csv(os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_params.csv"),dict)
+    print("## Params saved to: " + os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_params.csv"))
+
+    if SHOW_PLOTS:
+        plt.show()
+
+    plt.cla()
+    plt.close()

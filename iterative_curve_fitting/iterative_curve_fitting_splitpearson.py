@@ -22,17 +22,16 @@ import matplotlib.pyplot as plt
 from scipy.special import wofz
 import csv
 
-#CONSTANTS
-MIN_BLOCK_SIZE = 20
-
-
 
 """
-split pearson Profile used for fitting
+Voigt Profile used for fitting
 
 NOTE: When adjusting the number of parameters code needs to be modified.
 change the NUM_PARAMS variable respectively and adjust code at the ## PARAM tags
+
+specifically the fit_curves_to_block, fit_guess_curve_to_block, and save_data_to_csv
 """
+
 NUM_PARAMS = 8
 
 def split_pearson(x, amp,amp_,cen,alpha,gamma,alpha_,gamma_,c): ## PARAM
@@ -276,5 +275,4 @@ def fit_curves_to_block(X,Y,noise_threshold,max_curves):
 
     #return parameters as a list of 5-element-lists where each 5-element-list is
     #the params for a curve
-
     return [all_params[i:i+NUM_PARAMS] for i in range(0,len(all_params-1),NUM_PARAMS)]
