@@ -137,7 +137,7 @@ peak_reduced = np.zeros((peakGrid.size,len(layer_list)))
 
 for i,L in enumerate(layer_list):
     for P in L[0]:
-        peak_reduced[peakGrid.grid_num(P[0],P[1])-1,i] = 1#peakGrid.data_at(P[0],P[1])[P[2],0]
+        peak_reduced[peakGrid.grid_num(P[0],P[1])-1,i] = peakGrid.data_at(P[0],P[1])[P[2],0]
 
 pca = PCA(n_components = 'mle',svd_solver='full').fit_transform(peak_reduced)
 print(len(pca[0]))
