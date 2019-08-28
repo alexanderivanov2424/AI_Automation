@@ -194,7 +194,7 @@ return curve parameters.
 """
 def fit_guess_curve_to_block(X,Y):
     cen = X[np.argmax(Y)] #peak center
-    B = (X[-1] - X[0]) * 1 # 1% of block width
+    B = (X[-1] - X[0]) * 100 # 1% of block width
     try:
         p0 = [np.max(Y)/100,cen,.01,.01,0]## PARAM
         bounds = ([0,cen-B,0,0,0],[np.max(Y),cen+B,2,2,np.amax(Y)])## PARAM

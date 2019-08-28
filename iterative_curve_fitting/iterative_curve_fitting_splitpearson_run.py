@@ -20,7 +20,7 @@ import numpy as np
 from iterative_curve_fitting.iterative_curve_fitting_splitpearson import fit_curves_to_data,save_data_to_csv
 
 path_to_files = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C"
-path_to_save_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/params"
+path_to_save_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/params_split"
 
 
 
@@ -36,7 +36,7 @@ NOISE = 5
 Max Curve Fit
 Maximum number of curve that should be fit to a block
 """
-max_curves=30
+max_curves=3
 
 """
 Smallest allowable block
@@ -82,8 +82,10 @@ for file in files:
     Y = data[:,1]
 
     print("## Fitting ...")
-    dict = fit_curves_to_data(X,Y,1.5,1.81,noise=NOISE,max_curves=max_curves,min_block_size=MIN_BLOCK_SIZE)
-
+    try:
+        dict = fit_curves_to_data(X,Y,1.5,1.81,noise=NOISE,max_curves=max_curves,min_block_size=MIN_BLOCK_SIZE)
+    except:
+        continue
     param_list = dict['curve_params']
     change_points = dict['change_points']
     residuals = dict['residuals']
@@ -127,7 +129,7 @@ for file in files:
         #if params[2] < lim and params[3] < lim:
         x = params[1]
         y = fit(x)
-        plt.plot([x],[y],'ro')
+        #plt.plot([x],[y],'ro')
 
     from matplotlib.lines import Line2D
 
