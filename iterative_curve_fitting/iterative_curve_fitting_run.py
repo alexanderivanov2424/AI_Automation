@@ -18,7 +18,7 @@ import numpy as np
 from iterative_curve_fitting.iterative_curve_fitting import fit_curves_to_data,save_data_to_csv
 
 path_to_files = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C"
-path_to_save_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/params"
+path_to_save_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/params_noise10"
 
 
 
@@ -27,7 +27,7 @@ path_to_save_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_
 Noise Level
 Peaks below this intensity will not be considered
 """
-NOISE = 5
+NOISE = 10
 
 
 """
@@ -45,7 +45,7 @@ MIN_BLOCK_SIZE = 20
 """
 If false plots are saved but not displayed
 """
-SHOW_PLOTS = True
+SHOW_PLOTS = False
 
 
 

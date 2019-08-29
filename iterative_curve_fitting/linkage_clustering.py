@@ -132,6 +132,39 @@ while True:
 #layer_list = sorted(layer_list,key=lambda x:200 - len(x))
 layer_list = [L for L in layer_list if len(L[0]) > 5]
 
+#################
+#PCA Component Visualization
+################
+
+peak_reduced = np.zeros((peakGrid.size,len(layer_list)))
+
+for i,L in enumerate(layer_list):
+    for P in L[0]:
+        peak_reduced[peakGrid.grid_num(P[0],P[1])-1,i] = peakGrid.data_at(P[0],P[1])[P[2],0]
+
+pca = PCA(n_components = 'mle',svd_solver='full').fit_transform(peak_reduced)
+#pca = PCA(n_components = 5).fit_transform(peak_reduced)
+
+
+for i in range(len(pca[0])):
+    cluster_grid = np.zeros(shape = (15,15))
+    #cluster_grid[:] = np.nan
+    for val in range(1,178):
+        x,y = peakGrid.coord(val)
+        cluster_grid[y-1][15-x] = pca[val-1,i]
+    plt.imshow(cluster_grid)
+    plt.savefig("/home/sasha/Desktop/linkage clustering PCA Components/comp_" + str(i) + ".png")
+    plt.cla()
+
+
+
+
+
+
+"""
+##################
+#PCA to AGG Clustering
+##################
 
 peak_reduced = np.zeros((peakGrid.size,len(layer_list)))
 
@@ -167,10 +200,10 @@ for i in range(2,20):
     plt.title(i)
     plt.show()
 
-"""
-"""
+
+#################
 # 2D
-"""
+#################
 
 
 #generate colors
@@ -206,8 +239,9 @@ for i,layer_tuple in enumerate(layer_list):
 plt.show()
 
 
-
+##################
 #3D
+#################
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
