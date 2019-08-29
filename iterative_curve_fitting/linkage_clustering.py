@@ -27,7 +27,8 @@ Load Data and Peak Data
 
 
 data_dir = "/home/sasha/Desktop/iterative_curve_fitting_save_test/"
-regex = """params_(?P<num>.*?).csv"""
+data_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/params_noise10/"
+regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSub_1D_params.csv"""
 peakGrid = DataGrid(data_dir,regex)
 
 
@@ -132,6 +133,8 @@ while True:
 #layer_list = sorted(layer_list,key=lambda x:200 - len(x))
 layer_list = [L for L in layer_list if len(L[0]) > 5]
 
+
+"""
 #################
 #PCA Component Visualization
 ################
@@ -153,15 +156,16 @@ for i in range(len(pca[0])):
         x,y = peakGrid.coord(val)
         cluster_grid[y-1][15-x] = pca[val-1,i]
     plt.imshow(cluster_grid)
-    plt.savefig("/home/sasha/Desktop/linkage clustering PCA Components/comp_" + str(i) + ".png")
+    #plt.show()
+    plt.savefig("/home/sasha/Desktop/linkage clustering PCA Components Noise 10/comp_" + str(i) + ".png")
     plt.cla()
-
-
-
-
-
-
 """
+
+
+
+
+
+
 ##################
 #PCA to AGG Clustering
 ##################
@@ -200,7 +204,7 @@ for i in range(2,20):
     plt.title(i)
     plt.show()
 
-
+"""
 #################
 # 2D
 #################
