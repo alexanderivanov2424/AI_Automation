@@ -22,6 +22,8 @@ This is used to check the consistency of the peak finding algorithm.
 
 
 each color corresponds to a unique peak vector
+
+(This illustrates that every single grid location is its own region)
 """
 
 

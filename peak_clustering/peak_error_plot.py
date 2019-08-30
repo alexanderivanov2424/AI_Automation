@@ -1,3 +1,8 @@
+"""
+Script to compare peak BBA curve fitting and manually selected peaks
+
+""""
+
 
 from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 import matplotlib.pyplot as plt

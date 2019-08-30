@@ -1,4 +1,7 @@
+"""
+Clustering algorithm on the actual heat map
 
+"""
 
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 import matplotlib.pyplot as plt

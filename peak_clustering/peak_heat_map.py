@@ -1,4 +1,10 @@
+"""
+Plot a slice of the diffraction patterns in a wafer in order to visualize the
+emergence and fading of peaks.
 
+Refered to as a heatmap
+
+"""
 
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 import matplotlib.pyplot as plt

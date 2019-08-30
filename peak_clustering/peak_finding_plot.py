@@ -1,3 +1,8 @@
+"""
+Script to visualize the peaks being found by peakBBA
+
+"""
+
 from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 import matplotlib.pyplot as plt
 import numpy as np
