@@ -1,3 +1,12 @@
+"""
+PCA clustering
+
+Perform PCA on all of the diffraction patterns and perform hierarchical
+clustering with various distance metrics.
+
+"""
+
+
 
 from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 

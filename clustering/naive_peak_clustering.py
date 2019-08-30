@@ -1,3 +1,23 @@
+"""
+Naive Peak Clustering
+
+Hierarchical clustering from a similarity functionbetween each diffraction pattern
+
+Similarity between two diffraction patterns is defined to be the number of peak differences
+
+For each peak in one pattern the other pattern is checked for a peak withing a
+range delta. If the peak is not found then that counts as a difference.
+
+
+run from terminal from parent directory with:
+
+python3 -m clustering.naive_peak_clustering --delta .1
+
+
+"""
+
+
+
 
 from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
@@ -66,7 +86,7 @@ def similarity_vector(A,B):
     cosine =  np.dot(A,B)/np.linalg.norm(A)/np.linalg.norm(B)
     return cosine
 
-delta = args.delta #.05
+delta = args.delta #.1
 size = 50
 def similarity(d1,d2):
 

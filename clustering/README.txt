@@ -25,3 +25,15 @@ clustering_colors - Script for visualizing the way clusters split in a given clu
 clustering - Script for producing a cosine clustering for a range of clusters.
 
 clusterplots - Diagnostic script for comparing produced clusterings
+
+naive_peak_clustering - Hierarchical clustering based on the number of differences
+                        in located peaks.
+
+PCA_clustering - Hierarchical clustering on top of full data PCA transformation.
+                 Uses various distance metrics for final clustering.
+
+similarity_plot_analysis - Diagnostic Script to show various diffraction patterns
+                           side by side. Also computes cosine similarity.
+
+similarity - Neighbor based cosine similarity plot. Also shows clustering results
+             from another group in red.

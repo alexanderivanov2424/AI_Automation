@@ -1,3 +1,13 @@
+"""
+Similarity Plot
+
+Draw a neighbor based cosine similarity plot.
+With red lines block off regions found in "matlab code".
+Red lines are showing another groups? results for cosine clustering.
+
+
+"""
+
 
 from data_loading.data_grid_TiNiSn import DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 
