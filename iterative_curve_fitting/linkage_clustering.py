@@ -27,7 +27,7 @@ Load Data and Peak Data
 
 
 data_dir = "/home/sasha/Desktop/iterative_curve_fitting_save_test/"
-data_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/params_noise10/"
+data_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_500C/params/"
 regex = """TiNiSn_500C_Y20190218_14x14_t60_(?P<num>.*?)_bkgdSub_1D_params.csv"""
 peakGrid = DataGrid(data_dir,regex)
 
@@ -159,7 +159,7 @@ for i in range(len(pca[0])):
     #plt.show()
     plt.savefig("/home/sasha/Desktop/linkage clustering PCA Components Noise 10/comp_" + str(i) + ".png")
     plt.cla()
-"""
+
 
 
 
@@ -174,7 +174,7 @@ peak_reduced = np.zeros((peakGrid.size,len(layer_list)))
 
 for i,L in enumerate(layer_list):
     for P in L[0]:
-        peak_reduced[peakGrid.grid_num(P[0],P[1])-1,i] = peakGrid.data_at(P[0],P[1])[P[2],0]
+        peak_reduced[peakGrid.grid_num(P[0],P[1])-1,i] = 1#peakGrid.data_at(P[0],P[1])[P[2],0]
 
 pca = PCA(n_components = 'mle',svd_solver='full').fit_transform(peak_reduced)
 print(len(pca[0]))
@@ -204,7 +204,7 @@ for i in range(2,20):
     plt.title(i)
     plt.show()
 
-"""
+
 #################
 # 2D
 #################
@@ -242,7 +242,7 @@ for i,layer_tuple in enumerate(layer_list):
     #plt.cla()
 plt.show()
 
-
+"""
 ##################
 #3D
 #################
@@ -268,4 +268,3 @@ plt.show()
     #plt.draw()
     #plt.pause(1)
     #plt.cla()
-"""

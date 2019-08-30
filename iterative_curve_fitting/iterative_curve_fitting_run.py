@@ -27,7 +27,7 @@ path_to_save_dir = "/home/sasha/Desktop/TiNiSn_500C-20190604T152446Z-001/TiNiSn_
 Noise Level
 Peaks below this intensity will not be considered
 """
-NOISE = 10
+NOISE = 5
 
 
 """
@@ -45,7 +45,7 @@ MIN_BLOCK_SIZE = 20
 """
 If false plots are saved but not displayed
 """
-SHOW_PLOTS = False
+SHOW_PLOTS = True
 
 
 
@@ -120,12 +120,14 @@ for file in files:
     #plt.plot(X,[fit(x) for x in X],color="red")
 
     #plot peak points
+    """
     for params in param_list:
         lim = .05
         #if params[2] < lim and params[3] < lim:
         x = params[1]
         y = fit(x)
         plt.plot([x],[y],'ro')
+    """
 
     from matplotlib.lines import Line2D
 
