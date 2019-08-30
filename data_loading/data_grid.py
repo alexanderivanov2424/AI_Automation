@@ -6,6 +6,8 @@ convert coordinate systems and find neighbors.
 
 Specifically implemented with 177 point grid as in TiNiSn data set.
 
+Refer to the data_grid_TiNiSn object header for more details on input Regex
+
 '''
 import pandas as pd
 import numpy as np

@@ -1,4 +1,25 @@
+"""
+Example of how to implement data_grid object for specifc data set.
 
+Note:
+
+Regex needs to be correctly formated or else no data will be found.
+(this often results in an index out of bounds error)
+
+the "(?P<num>.*?)" is intended to replace the identifying number in the filename.
+
+For example file of the form
+
+params1test.csv
+params2test.csv
+      3
+...
+
+would use the Regex
+    params(?P<num>.*?)test.csv
+
+This number will be used as the key in the dataGrid dictionary.    
+"""
 
 from data_loading.data_grid import DataGrid
 
