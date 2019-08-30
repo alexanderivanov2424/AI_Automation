@@ -1,3 +1,10 @@
+"""
+Script testing a noise detection technique.
+
+Slowly increases signal strength and shows when the data is classified as a peak
+or as noise.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import wofz

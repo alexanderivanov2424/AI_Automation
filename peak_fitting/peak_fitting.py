@@ -1,3 +1,10 @@
+"""
+Shows the results of peak fitting.
+
+(runs fit_data_sample and visualizes outputs)
+
+"""
+
 from data_loading.data_grid_TiNiSn import DataGrid, DataGrid_TiNiSn_500C, DataGrid_TiNiSn_600C
 from peak_fitting.fit_data_sample import fit_curves_to_data, get_peak_indices
 

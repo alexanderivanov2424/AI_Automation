@@ -1,3 +1,11 @@
+"""
+Algorithm to fit curves to a data sample and return parameters.
+
+return curve parameters (parameters of the voigt profile)
+
+"""
+
+
 from scipy.optimize import curve_fit, leastsq
 from scipy.signal import find_peaks
 from scipy.special import wofz
