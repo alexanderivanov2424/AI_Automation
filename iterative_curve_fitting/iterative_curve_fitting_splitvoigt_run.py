@@ -148,8 +148,9 @@ for file in files:
     plt.savefig(os.path.join(path_to_save_dir,os.path.splitext(file)[0] + ".png"))
     print("## Plot saved to: " + os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_plot.png"))
 
-    save_data_to_csv(os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_params.csv"),dict)
-    print("## Params saved to: " + os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_params.csv"))
+    #Not implemented correctly
+    #save_data_to_csv(os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_params.csv"),dict)
+    #print("## Params saved to: " + os.path.join(path_to_save_dir,os.path.splitext(file)[0] + "_params.csv"))
 
     if SHOW_PLOTS:
         plt.show()

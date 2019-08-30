@@ -1,6 +1,6 @@
 
 """
-
+Plot peaks in 3D space. 2 axies for spacial dimensions and one for Q space.
 
 
 """

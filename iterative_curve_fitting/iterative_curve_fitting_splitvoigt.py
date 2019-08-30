@@ -67,7 +67,13 @@ def is_noise(data,noise_threshold):
 Saves dictionary output from fit_curves_to_data to a csv
 Note: only saves peak parameters
 Note: full_file_name includes the path to the file, its name, and the .csv at the end
+
+###############################
+#NOTE NOT IMPLEMENTED CORRECTLY
+#Incorrect FWHM, I  Calculation
+###############################
 """
+
 def save_data_to_csv(full_file_name,dict): ## PARAM
     curve_params = dict['curve_params']
     for params in curve_params:
