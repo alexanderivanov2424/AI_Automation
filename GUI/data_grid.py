@@ -1,10 +1,12 @@
 '''
-DATA GRID
+DATA GRID - FOR GUI
 
 Object used to represent measurements on a grid and several functions to
 convert coordinate systems and find neighbors.
 
 Specifically implemented with 177 point grid as in TiNiSn data set.
+
+
 
 '''
 import pandas as pd

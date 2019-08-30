@@ -1,3 +1,11 @@
+"""
+Class to hold the various clustering methods used by the GUI
+
+NOT USED (but should be)
+
+
+"""
+
 from data_grid import DataGrid
 
 

@@ -1,3 +1,14 @@
+"""
+GUI to visualize various clustering methods.
+
+Includes data loading and several different clustering techniques.
+
+
+If you need to rewrite this or debug:
+alexander_ivanov@brown.edu
+(unfortunately written without much forethought)
+"""
+
 from data_grid import DataGrid
 
 
